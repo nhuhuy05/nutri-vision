@@ -117,3 +117,4 @@ export const useMealStore = create<MealStoreState>((set, get) => ({
     set({ isOnline: net.isConnected });
   },
 }));
+

@@ -54,3 +54,4 @@ export interface RecognitionResult {
   confidence: number;
   suggestedPortion: number;
 }
+

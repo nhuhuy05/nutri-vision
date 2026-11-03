@@ -66,3 +66,4 @@ export async function syncMealLogs(): Promise<SyncResult> {
     pendingCount: remaining.length,
   };
 }
+

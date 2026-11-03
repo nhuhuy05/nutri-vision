@@ -251,3 +251,4 @@ export async function markLogAsSynced(id: string): Promise<void> {
   const db = await getDatabase();
   await db.runAsync('UPDATE meal_logs SET synced = 1 WHERE id = ?', [id]);
 }
+

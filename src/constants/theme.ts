@@ -28,3 +28,4 @@ export const DEFAULT_GOALS = {
   fat: 65,      // grams
   waterMl: 2200,
 };
+

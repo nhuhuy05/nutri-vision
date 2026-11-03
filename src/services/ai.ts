@@ -58,3 +58,4 @@ class AIFoodService {
 }
 
 export const aiService = new AIFoodService();
+

@@ -16,3 +16,4 @@ export const useGoalStore = create<GoalState>((set) => ({
     })),
   resetGoals: () => set({ goals: { ...DEFAULT_GOALS } }),
 }));
+
