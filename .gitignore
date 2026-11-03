@@ -33,13 +33,8 @@ yarn-debug.*
 yarn-error.*
 *.log
 
-# Environment variables & Secrets (Quan trọng: Không commit API keys)
+# Environment variables & Secrets
 .env
-.env*.local
-.env.development
-.env.production
-.env.test
-!.env.example
 
 # IDE & Editor files
 .vscode/
@@ -61,8 +56,5 @@ Desktop.ini
 # TypeScript build info
 *.tsbuildinfo
 
-# Local SQLite databases (Tránh đẩy db dữ liệu test cá nhân lên git)
+# Local SQLite databases
 *.db
-*.db-journal
-*.db-wal
-*.db-shm
