@@ -1,7 +1,9 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
-# dependencies
+# Dependencies
 node_modules/
+.pnp
+.pnp.js
 
 # Expo
 .expo/
@@ -9,7 +11,11 @@ dist/
 web-build/
 expo-env.d.ts
 
-# Native
+# Native Continuous Generation
+/ios
+/android
+
+# Native build artifacts
 .kotlin/
 *.orig.*
 *.jks
@@ -18,24 +24,45 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
-# Metro
+# Metro & Bundler
 .metro-health-check*
 
-# debug
+# Debug & Logs
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+*.log
 
-# macOS
-.DS_Store
-*.pem
-
-# local env files
+# Environment variables & Secrets (Quan trọng: Không commit API keys)
+.env
 .env*.local
+.env.development
+.env.production
+.env.test
+!.env.example
 
-# typescript
+# IDE & Editor files
+.vscode/
+.idea/
+.claude/
+*.sublime-project
+*.sublime-workspace
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# TypeScript build info
 *.tsbuildinfo
 
-# generated native folders
-/ios
-/android
+# Local SQLite databases (Tránh đẩy db dữ liệu test cá nhân lên git)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
