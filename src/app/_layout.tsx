@@ -3,9 +3,9 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getDatabase } from '../services/database';
-import { useMealStore } from '../store/mealStore';
-import { COLORS } from '../constants/theme';
+import { getDatabase } from '../data/datasources/local/database';
+import { useMealStore } from '../presentation/store/mealStore';
+import { COLORS } from '../core/theme';
 
 const queryClient = new QueryClient();
 
@@ -26,7 +26,7 @@ export default function RootLayout() {
       }
     }
     bootstrap();
-  }, []);
+  }, [checkConnectivity, loadLogs]);
 
   if (!isReady) {
     return (

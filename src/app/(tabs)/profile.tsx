@@ -9,10 +9,8 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
-import { useAuthStore } from '../../store/authStore';
-import { useGoalStore } from '../../store/goalStore';
-import { useMealStore } from '../../store/mealStore';
+import { COLORS } from '../../core/theme';
+import { useAuthStore, useGoalStore, useMealStore } from '../../presentation/store';
 
 export default function ProfileScreen() {
   const { user, logout } = useAuthStore();

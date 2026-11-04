@@ -12,9 +12,9 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
-import { aiService } from '../../services/ai';
-import { RecognitionResult } from '../../types/nutrition';
+import { COLORS } from '../../core/theme';
+import { RecognitionResult } from '../../domain/entities';
+import { recognizeDishUseCase } from '../../core/di';
 
 export default function ScanScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -64,7 +64,7 @@ export default function ScanScreen() {
     setIsAnalyzing(true);
     setCandidates([]);
     try {
-      const results = await aiService.recognizeDish(uri);
+      const results = await recognizeDishUseCase.execute(uri);
       setCandidates(results);
     } catch (error) {
       console.error('AI recognition error:', error);

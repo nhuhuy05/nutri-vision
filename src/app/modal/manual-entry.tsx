@@ -6,12 +6,13 @@ import {
   TextInput,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
-import { FoodItem, MealType } from '../../types/nutrition';
-import { getAllFoods, searchFoods } from '../../services/database';
+import { COLORS } from '../../core/theme';
+import { FoodItem, MealType } from '../../domain/entities';
+import { getAllFoodsUseCase, searchFoodsUseCase } from '../../core/di';
 
 export default function ManualEntryModal() {
   const params = useLocalSearchParams<{ defaultMealType?: MealType }>();
@@ -20,31 +21,38 @@ export default function ManualEntryModal() {
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    loadFoods();
-  }, [keyword]);
+    let isCancelled = false;
 
-  const loadFoods = async () => {
-    setIsLoading(true);
-    try {
-      if (keyword.trim()) {
-        const results = await searchFoods(keyword);
-        setFoodList(results);
-      } else {
-        const all = await getAllFoods();
-        setFoodList(all);
+    Promise.resolve().then(async () => {
+      if (isCancelled) return;
+      setIsLoading(true);
+      try {
+        const results = keyword.trim()
+          ? await searchFoodsUseCase.execute(keyword)
+          : await getAllFoodsUseCase.execute();
+        if (!isCancelled) {
+          setFoodList(results);
+        }
+      } catch (e) {
+        console.error('Error fetching foods:', e);
+      } finally {
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
-    } catch (e) {
-      console.error('Error fetching foods:', e);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [keyword]);
 
   const handleSelectFood = (item: FoodItem) => {
     router.push({
       pathname: '/modal/food-review',
       params: {
         foodId: item.id,
+        defaultMealType: params.defaultMealType,
       },
     });
   };
@@ -105,10 +113,16 @@ export default function ManualEntryModal() {
         )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
-            <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
-            <Text style={styles.emptyText}>
-              Không tìm thấy món ăn nào khớp với từ khóa "{keyword}"
-            </Text>
+            {isLoading ? (
+              <ActivityIndicator size="large" color={COLORS.primary} />
+            ) : (
+              <>
+                <Ionicons name="search-outline" size={48} color={COLORS.textMuted} />
+                <Text style={styles.emptyText}>
+                  Không tìm thấy món ăn nào khớp với từ khóa &quot;{keyword}&quot;
+                </Text>
+              </>
+            )}
           </View>
         }
       />

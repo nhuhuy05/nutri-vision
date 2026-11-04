@@ -9,11 +9,10 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
-import { useMealStore } from '../../store/mealStore';
-import { MealSection } from '../../components/MealSection';
-import { OfflineBanner } from '../../components/OfflineBanner';
-import { MealType } from '../../types/nutrition';
+import { COLORS } from '../../core/theme';
+import { useMealStore } from '../../presentation/store';
+import { MealSection, OfflineBanner } from '../../presentation/components';
+import { MealType } from '../../domain/entities';
 
 export default function DiaryScreen() {
   const { logs, selectedDate, setSelectedDate, removeMeal } = useMealStore();
@@ -24,6 +23,15 @@ export default function DiaryScreen() {
   const snackLogs = logs.filter((l) => l.mealType === 'snack');
 
   const totalCalories = logs.reduce((sum, item) => sum + item.calories, 0);
+
+  const changeDate = (offsetDays: number) => {
+    const current = new Date(selectedDate);
+    current.setDate(current.getDate() + offsetDays);
+    const y = current.getFullYear();
+    const m = String(current.getMonth() + 1).padStart(2, '0');
+    const d = String(current.getDate()).padStart(2, '0');
+    setSelectedDate(`${y}-${m}-${d}`);
+  };
 
   const handleDelete = (id: string) => {
     Alert.alert('Xoá món ăn', 'Bạn có chắc chắn muốn xoá món này khỏi nhật ký?', [
@@ -50,14 +58,14 @@ export default function DiaryScreen() {
 
       {/* Date Header Switcher */}
       <View style={styles.dateSelector}>
-        <TouchableOpacity style={styles.arrowBtn}>
+        <TouchableOpacity style={styles.arrowBtn} onPress={() => changeDate(-1)}>
           <Ionicons name="chevron-back" size={20} color={COLORS.text} />
         </TouchableOpacity>
         <View style={styles.dateInfo}>
           <Text style={styles.dateTitle}>Hôm nay</Text>
           <Text style={styles.dateSub}>{selectedDate}</Text>
         </View>
-        <TouchableOpacity style={styles.arrowBtn}>
+        <TouchableOpacity style={styles.arrowBtn} onPress={() => changeDate(1)}>
           <Ionicons name="chevron-forward" size={20} color={COLORS.text} />
         </TouchableOpacity>
       </View>

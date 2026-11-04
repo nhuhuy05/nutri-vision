@@ -9,12 +9,9 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
-import { useMealStore } from '../../store/mealStore';
-import { useGoalStore } from '../../store/goalStore';
-import { useAuthStore } from '../../store/authStore';
-import { MacroBar } from '../../components/MacroBar';
-import { OfflineBanner } from '../../components/OfflineBanner';
+import { COLORS } from '../../core/theme';
+import { useMealStore, useGoalStore, useAuthStore } from '../../presentation/store';
+import { MacroBar, OfflineBanner } from '../../presentation/components';
 
 export default function DashboardScreen() {
   const { user } = useAuthStore();

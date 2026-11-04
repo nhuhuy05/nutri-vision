@@ -10,11 +10,11 @@ import {
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../constants/theme';
-import { VIETNAMESE_FOODS_DATA } from '../../constants/vietnameseFoods';
-import { FoodItem, MealType } from '../../types/nutrition';
-import { useMealStore } from '../../store/mealStore';
-import { useAuthStore } from '../../store/authStore';
+import { COLORS } from '../../core/theme';
+import { FoodItem, MealType } from '../../domain/entities';
+import { getFoodByIdUseCase } from '../../core/di';
+import { useMealStore } from '../../presentation/store/mealStore';
+import { useAuthStore } from '../../presentation/store/authStore';
 
 const PORTION_OPTIONS = [
   { label: '0.5x (Ít / Nửa phần)', value: 0.5 },
@@ -41,15 +41,21 @@ export default function FoodReviewModal() {
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (params.foodId) {
-      const found = VIETNAMESE_FOODS_DATA.find((f) => f.id === params.foodId);
-      if (found) {
-        setFood(found);
+    async function fetchFood() {
+      if (params.foodId) {
+        const found = await getFoodByIdUseCase.execute(params.foodId);
+        if (found) {
+          setFood(found);
+          return;
+        }
       }
-    } else {
-      // Default fallback
-      setFood(VIETNAMESE_FOODS_DATA[0]);
+      // Fallback: try fetching first food
+      const defaultFood = await getFoodByIdUseCase.execute('pho-bo');
+      if (defaultFood) {
+        setFood(defaultFood);
+      }
     }
+    fetchFood();
   }, [params.foodId]);
 
   if (!food) {

@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
-import { COLORS } from '../../constants/theme';
-import { useMealStore } from '../../store/mealStore';
-import { useGoalStore } from '../../store/goalStore';
-import { MacroBar } from '../../components/MacroBar';
+import { COLORS } from '../../core/theme';
+import { useMealStore, useGoalStore } from '../../presentation/store';
+import { MacroBar } from '../../presentation/components';
 
 export default function ReportsScreen() {
   const { logs } = useMealStore();
