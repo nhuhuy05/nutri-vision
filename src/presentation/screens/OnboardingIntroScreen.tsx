@@ -6,11 +6,42 @@ import {
   TouchableOpacity,
   ScrollView,
   Platform,
+  Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
+
+const DISH_OPTIONS = [
+  {
+    name: 'Phở bò tái lăn',
+    shortName: 'Phở tái lăn',
+    region: 'Món Bắc',
+    desc: 'Bánh phở tươi • Thịt bò xào lăn • Hành hoa',
+    cal: '520',
+    unit: 'KCAL',
+    thumb: require('../../../assets/images/onboarding/dish_pho.png'),
+  },
+  {
+    name: 'Cơm tấm sườn nướng',
+    shortName: 'Cơm tấm sườn',
+    region: 'Món Nam',
+    desc: 'Gạo tấm • Sườn nướng mật ong • Trứng ốp la',
+    cal: '685',
+    unit: 'KCAL',
+    thumb: require('../../../assets/images/onboarding/dish_comtam.png'),
+  },
+  {
+    name: 'Bún bò Huế đặc biệt',
+    shortName: 'Bún bò Huế',
+    region: 'Món Trung',
+    desc: 'Bún sợi to • Bắp bò hoa • Chả cua • Nước dùng ruốc',
+    cal: '590',
+    unit: 'KCAL',
+    thumb: require('../../../assets/images/onboarding/dish_bunbo.png'),
+  },
+];
 
 export function OnboardingIntroScreen() {
   const [currentSlide, setCurrentSlide] = useState<1 | 2 | 3>(1);
@@ -125,16 +156,19 @@ export function OnboardingIntroScreen() {
             <View style={styles.scannerHeroCard}>
               {/* Camera Viewport Mockup */}
               <View style={styles.viewport}>
+                {/* Real Food Image from Figma */}
+                <Image
+                  source={require('../../../assets/images/onboarding/onboarding_1_hero.png')}
+                  style={styles.heroViewportImg}
+                  resizeMode="cover"
+                />
+                <View style={styles.heroImgOverlay} />
+
                 {/* Center Viewfinder Reticle Corners */}
                 <View style={[styles.reticleCorner, styles.reticleTL]} />
                 <View style={[styles.reticleCorner, styles.reticleTR]} />
                 <View style={[styles.reticleCorner, styles.reticleBL]} />
                 <View style={[styles.reticleCorner, styles.reticleBR]} />
-
-                {/* Center Big Dish Illustration */}
-                <View style={styles.dishCenterWrap}>
-                  <Text style={styles.dishLargeEmoji}>🍜</Text>
-                </View>
 
                 {/* Top-Left: Meal Name Tag */}
                 <View style={styles.mealNameTag}>
@@ -212,45 +246,50 @@ export function OnboardingIntroScreen() {
 
             {/* Live AI Camera Recognition Showcase */}
             <View style={styles.vietnameseShowcaseCard}>
-              <View style={styles.showcaseTopRow}>
-                <View style={styles.aiScanHudBadge}>
-                  <View style={styles.pulsingDot} />
-                  <Text style={styles.aiScanHudText}>AI SCAN • 99% CHÍNH XÁC</Text>
-                </View>
-                <View style={styles.regionalTag}>
-                  <Text style={styles.regionalTagText}>
-                    {selectedDishIndex === 0 ? 'Món Bắc' : selectedDishIndex === 1 ? 'Món Nam' : 'Món Trung'}
-                  </Text>
+              {/* Camera Preview HUD */}
+              <View style={styles.slide2CameraViewport}>
+                <Image
+                  source={require('../../../assets/images/onboarding/onboarding_2_hero.png')}
+                  style={styles.slide2CameraImg}
+                  resizeMode="cover"
+                />
+                <View style={styles.slide2CameraOverlay} />
+                <View style={styles.showcaseTopRow}>
+                  <View style={styles.aiScanHudBadge}>
+                    <View style={styles.pulsingDot} />
+                    <Text style={styles.aiScanHudText}>AI SCAN • 99% CHÍNH XÁC</Text>
+                  </View>
+                  <View style={styles.regionalTag}>
+                    <Text style={styles.regionalTagText}>
+                      {DISH_OPTIONS[selectedDishIndex].region}
+                    </Text>
+                  </View>
                 </View>
               </View>
 
               {/* Main Detected Food Card */}
               <View style={styles.detectedDishCard}>
                 <View style={styles.detectedDishHeader}>
-                  <Text style={styles.detectedDishEmoji}>
-                    {selectedDishIndex === 0 ? '🍜' : selectedDishIndex === 1 ? '🍱' : '🥗'}
-                  </Text>
+                  <Image
+                    source={DISH_OPTIONS[selectedDishIndex].thumb}
+                    style={styles.detectedDishImg}
+                    resizeMode="cover"
+                  />
                   <View style={{ flex: 1, marginLeft: 12 }}>
                     <Text style={styles.detectedDishTitle}>
-                      {selectedDishIndex === 0
-                        ? 'Phở bò tái lăn'
-                        : selectedDishIndex === 1
-                        ? 'Cơm tấm sườn nướng'
-                        : 'Bún bò Huế đặc biệt'}
+                      {DISH_OPTIONS[selectedDishIndex].name}
                     </Text>
                     <Text style={styles.detectedDishDesc}>
-                      {selectedDishIndex === 0
-                        ? 'Bánh phở tươi • Thịt bò xào lăn • Hành hoa'
-                        : selectedDishIndex === 1
-                        ? 'Gạo tấm • Sườn nướng mật ong • Trứng ốp la'
-                        : 'Bún sợi to • Bắp bò hoa • Chả cua • Nước dùng ruốc'}
+                      {DISH_OPTIONS[selectedDishIndex].desc}
                     </Text>
                   </View>
                   <View style={styles.calorieBadge}>
                     <Text style={styles.calorieBadgeNum}>
-                      {selectedDishIndex === 0 ? '520' : selectedDishIndex === 1 ? '685' : '590'}
+                      {DISH_OPTIONS[selectedDishIndex].cal}
                     </Text>
-                    <Text style={styles.calorieBadgeUnit}>KCAL</Text>
+                    <Text style={styles.calorieBadgeUnit}>
+                      {DISH_OPTIONS[selectedDishIndex].unit}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -259,11 +298,7 @@ export function OnboardingIntroScreen() {
               <View style={styles.alternativesSection}>
                 <Text style={styles.alternativesTitle}>Thử chuyển đổi món nhận diện:</Text>
                 <View style={styles.thumbnailsRow}>
-                  {[
-                    { name: 'Phở tái lăn', cal: '520 kcal', emoji: '🍜' },
-                    { name: 'Cơm tấm sườn', cal: '685 kcal', emoji: '🍱' },
-                    { name: 'Bún bò Huế', cal: '590 kcal', emoji: '🥗' },
-                  ].map((item, idx) => {
+                  {DISH_OPTIONS.map((item, idx) => {
                     const isSelected = selectedDishIndex === idx;
                     return (
                       <TouchableOpacity
@@ -274,7 +309,11 @@ export function OnboardingIntroScreen() {
                         ]}
                         onPress={() => setSelectedDishIndex(idx)}
                       >
-                        <Text style={styles.thumbEmoji}>{item.emoji}</Text>
+                        <Image
+                          source={item.thumb}
+                          style={styles.thumbDishImg}
+                          resizeMode="cover"
+                        />
                         <Text
                           style={[
                             styles.thumbName,
@@ -282,9 +321,9 @@ export function OnboardingIntroScreen() {
                           ]}
                           numberOfLines={1}
                         >
-                          {item.name}
+                          {item.shortName}
                         </Text>
-                        <Text style={styles.thumbCal}>{item.cal}</Text>
+                        <Text style={styles.thumbCal}>{item.cal} kcal</Text>
                       </TouchableOpacity>
                     );
                   })}
@@ -596,11 +635,14 @@ const styles = StyleSheet.create({
     borderRightWidth: 3,
     borderBottomRightRadius: 6,
   },
-  dishCenterWrap: {
-    marginBottom: 20,
+  heroViewportImg: {
+    ...StyleSheet.absoluteFill,
+    width: '100%',
+    height: '100%',
   },
-  dishLargeEmoji: {
-    fontSize: 72,
+  heroImgOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
   },
   mealNameTag: {
     position: 'absolute',
@@ -707,11 +749,27 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     elevation: 3,
   },
+  slide2CameraViewport: {
+    height: 120,
+    borderRadius: 14,
+    overflow: 'hidden',
+    position: 'relative',
+    marginBottom: 12,
+  },
+  slide2CameraImg: {
+    ...StyleSheet.absoluteFill,
+    width: '100%',
+    height: '100%',
+  },
+  slide2CameraOverlay: {
+    ...StyleSheet.absoluteFill,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+  },
   showcaseTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    padding: 10,
   },
   aiScanHudBadge: {
     flexDirection: 'row',
@@ -756,8 +814,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  detectedDishEmoji: {
-    fontSize: 34,
+  detectedDishImg: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: '#E5E7EB',
   },
   detectedDishTitle: {
     fontSize: 15,
@@ -814,9 +875,12 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     backgroundColor: '#F0FDF4',
   },
-  thumbEmoji: {
-    fontSize: 18,
-    marginBottom: 2,
+  thumbDishImg: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    marginBottom: 4,
+    backgroundColor: '#F3F4F6',
   },
   thumbName: {
     fontSize: 11,

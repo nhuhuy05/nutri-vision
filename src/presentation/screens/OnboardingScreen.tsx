@@ -8,6 +8,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -856,7 +857,11 @@ export function OnboardingScreen() {
               </View>
 
               <View style={styles.dishRow}>
-                <Text style={styles.dishEmoji}>🍜</Text>
+                <Image
+                  source={require('../../../assets/images/onboarding/dish_pho_bo_tai.png')}
+                  style={styles.dishThumbImg}
+                  resizeMode="cover"
+                />
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.dishName}>Phở Bò Tái Nạc</Text>
                   <Text style={styles.dishMeta}>520 kcal • 38g Đạm • Cân bằng</Text>
@@ -865,7 +870,11 @@ export function OnboardingScreen() {
               </View>
 
               <View style={[styles.dishRow, { marginTop: 10 }]}>
-                <Text style={styles.dishEmoji}>🥗</Text>
+                <Image
+                  source={require('../../../assets/images/onboarding/dish_goicuon.png')}
+                  style={styles.dishThumbImg}
+                  resizeMode="cover"
+                />
                 <View style={{ flex: 1, marginLeft: 12 }}>
                   <Text style={styles.dishName}>Gỏi Cuốn Tôm Thịt (3 cuộn)</Text>
                   <Text style={styles.dishMeta}>310 kcal • 19g Đạm • Ít chất béo</Text>
@@ -1573,8 +1582,11 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
   },
-  dishEmoji: {
-    fontSize: 24,
+  dishThumbImg: {
+    width: 44,
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: '#E5E7EB',
   },
   dishName: {
     fontSize: 14,

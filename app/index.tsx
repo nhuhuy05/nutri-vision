@@ -49,3 +49,4 @@ export default function RootIndex() {
 
   return <Redirect href={target as any} />;
 }
+
