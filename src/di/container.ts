@@ -7,6 +7,7 @@ import { SyncMetaLocalDataSource } from '../data/datasources/local/SyncMetaLocal
 // Remote DataSources
 import { MealLogRemoteDataSource } from '../data/datasources/remote/MealLogRemoteDataSource';
 import { AuthRemoteDataSource } from '../data/datasources/remote/AuthRemoteDataSource';
+import { BiometricAuthDataSource } from '../data/datasources/remote/BiometricAuthDataSource';
 import { ProfileRemoteDataSource } from '../data/datasources/remote/ProfileRemoteDataSource';
 
 // AI DataSources
@@ -40,6 +41,8 @@ import { SignUpUseCase } from '../domain/usecases/auth/SignUpUseCase';
 import { SignInUseCase } from '../domain/usecases/auth/SignInUseCase';
 import { SignOutUseCase } from '../domain/usecases/auth/SignOutUseCase';
 import { GetCurrentSessionUseCase } from '../domain/usecases/auth/GetCurrentSessionUseCase';
+import { AuthenticateWithBiometricsUseCase } from '../domain/usecases/auth/AuthenticateWithBiometricsUseCase';
+import { CheckBiometricAvailabilityUseCase } from '../domain/usecases/auth/CheckBiometricAvailabilityUseCase';
 import { GetProfileUseCase } from '../domain/usecases/profile/GetProfileUseCase';
 import { UpdateProfileUseCase } from '../domain/usecases/profile/UpdateProfileUseCase';
 import { SyncPendingMealLogsUseCase } from '../domain/usecases/sync/SyncPendingMealLogsUseCase';
@@ -53,6 +56,7 @@ export const syncMetaLocalDataSource = new SyncMetaLocalDataSource();
 
 export const mealLogRemoteDataSource = new MealLogRemoteDataSource();
 export const authRemoteDataSource = new AuthRemoteDataSource();
+export const biometricAuthDataSource = new BiometricAuthDataSource();
 export const profileRemoteDataSource = new ProfileRemoteDataSource();
 
 export const tfliteClassifier = new TFLiteClassifier();
@@ -62,7 +66,7 @@ export const networkInfo = new NetworkInfo();
 export const foodRepository = new FoodRepositoryImpl(foodLocalDataSource);
 export const mealLogRepository = new MealLogRepositoryImpl(mealLogLocalDataSource);
 export const goalRepository = new GoalRepositoryImpl(goalLocalDataSource);
-export const authRepository = new AuthRepositoryImpl(authRemoteDataSource);
+export const authRepository = new AuthRepositoryImpl(authRemoteDataSource, biometricAuthDataSource);
 export const profileRepository = new ProfileRepositoryImpl(profileRemoteDataSource);
 export const syncRepository = new SyncRepositoryImpl(
   mealLogLocalDataSource,
@@ -94,6 +98,8 @@ export const signUpUseCase = new SignUpUseCase(authRepository);
 export const signInUseCase = new SignInUseCase(authRepository);
 export const signOutUseCase = new SignOutUseCase(authRepository);
 export const getCurrentSessionUseCase = new GetCurrentSessionUseCase(authRepository);
+export const authenticateWithBiometricsUseCase = new AuthenticateWithBiometricsUseCase(authRepository);
+export const checkBiometricAvailabilityUseCase = new CheckBiometricAvailabilityUseCase(authRepository);
 export const getProfileUseCase = new GetProfileUseCase(profileRepository);
 export const updateProfileUseCase = new UpdateProfileUseCase(profileRepository);
 

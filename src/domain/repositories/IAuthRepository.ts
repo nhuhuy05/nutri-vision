@@ -7,4 +7,6 @@ export interface IAuthRepository {
   signIn(email: string, password: string): Promise<Result<Session, Failure>>;
   signOut(): Promise<Result<void, Failure>>;
   getCurrentSession(): Promise<Result<Session | null, Failure>>;
+  checkBiometrics(): Promise<{ isAvailable: boolean; biometryType: string }>;
+  authenticateWithBiometrics(): Promise<Result<Session, Failure>>;
 }

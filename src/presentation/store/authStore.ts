@@ -5,6 +5,8 @@ import {
   signInUseCase,
   signOutUseCase,
   getCurrentSessionUseCase,
+  authenticateWithBiometricsUseCase,
+  checkBiometricAvailabilityUseCase,
   getProfileUseCase,
   updateProfileUseCase,
 } from '../../di/container';
@@ -14,8 +16,12 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  isBiometricAvailable: boolean;
+  biometryType: string;
   checkSession: () => Promise<void>;
+  checkBiometrics: () => Promise<void>;
   login: (email: string, password: string) => Promise<boolean>;
+  loginWithBiometrics: () => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<boolean>;
   updateUserProfile: (name: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -30,6 +36,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   isLoading: false,
   error: null,
+  isBiometricAvailable: false,
+  biometryType: 'Face ID',
+
+  checkBiometrics: async () => {
+    try {
+      const res = await checkBiometricAvailabilityUseCase.execute();
+      set({
+        isBiometricAvailable: res.isAvailable,
+        biometryType: res.biometryType || 'Face ID',
+      });
+    } catch {
+      set({ isBiometricAvailable: false });
+    }
+  },
 
   checkSession: async () => {
     set({ isLoading: true, error: null });
@@ -63,6 +83,31 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const sessionUser = result.data.user;
       
       // Get full profile
+      const profileResult = await getProfileUseCase.execute(sessionUser.id);
+      const userProfile: UserProfile = profileResult.success
+        ? profileResult.data
+        : sessionUser;
+
+      set({
+        user: userProfile,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+      return true;
+    } else {
+      set({
+        isLoading: false,
+        error: result.error.message,
+      });
+      return false;
+    }
+  },
+
+  loginWithBiometrics: async () => {
+    set({ isLoading: true, error: null });
+    const result = await authenticateWithBiometricsUseCase.execute();
+    if (result.success) {
+      const sessionUser = result.data.user;
       const profileResult = await getProfileUseCase.execute(sessionUser.id);
       const userProfile: UserProfile = profileResult.success
         ? profileResult.data

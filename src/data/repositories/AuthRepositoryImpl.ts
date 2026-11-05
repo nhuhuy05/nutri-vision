@@ -3,10 +3,14 @@ import { Session } from '../../domain/entities/Session';
 import { Result, ok, fail } from '../../domain/common/Result';
 import { Failure } from '../../domain/common/Failure';
 import { AuthRemoteDataSource } from '../datasources/remote/AuthRemoteDataSource';
+import { BiometricAuthDataSource } from '../datasources/remote/BiometricAuthDataSource';
 import { ErrorMapper } from '../infrastructure/ErrorMapper';
 
 export class AuthRepositoryImpl implements IAuthRepository {
-  constructor(private authRemoteDataSource: AuthRemoteDataSource) {}
+  constructor(
+    private authRemoteDataSource: AuthRemoteDataSource,
+    private biometricAuthDataSource: BiometricAuthDataSource
+  ) {}
 
   async signUp(email: string, password: string, name: string): Promise<Result<Session, Failure>> {
     try {
@@ -38,6 +42,19 @@ export class AuthRepositoryImpl implements IAuthRepository {
   async getCurrentSession(): Promise<Result<Session | null, Failure>> {
     try {
       const session = await this.authRemoteDataSource.getCurrentSession();
+      return ok(session);
+    } catch (e) {
+      return fail(ErrorMapper.toFailure(e));
+    }
+  }
+
+  async checkBiometrics(): Promise<{ isAvailable: boolean; biometryType: string }> {
+    return this.biometricAuthDataSource.checkAvailability();
+  }
+
+  async authenticateWithBiometrics(): Promise<Result<Session, Failure>> {
+    try {
+      const session = await this.biometricAuthDataSource.authenticateAndRestoreSession();
       return ok(session);
     } catch (e) {
       return fail(ErrorMapper.toFailure(e));

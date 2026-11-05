@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,31 @@ export function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
-  const { login, register, isLoading, error } = useAuthStore();
+  const {
+    login,
+    register,
+    loginWithBiometrics,
+    checkBiometrics,
+    isBiometricAvailable,
+    biometryType,
+    isLoading,
+    error,
+  } = useAuthStore();
+
+  useEffect(() => {
+    checkBiometrics();
+  }, [checkBiometrics]);
+
+  const getBiometricTitle = () => {
+    if (biometryType === 'FINGERPRINT') return 'Vân tay (Touch ID)';
+    if (biometryType === 'FACE_ID') return 'Face ID';
+    return 'Face ID / Sinh trắc học';
+  };
+
+  const getBiometricIcon = (): keyof typeof Ionicons.glyphMap => {
+    if (biometryType === 'FINGERPRINT') return 'finger-print-outline';
+    return 'scan-outline';
+  };
 
   const handleSubmit = async () => {
     const cleanEmail = email.trim();
@@ -68,11 +92,17 @@ export function SignInScreen() {
     router.replace('/(tabs)');
   };
 
-  const handleBiometricPress = () => {
-    Alert.alert(
-      'Sinh trắc học (Face ID / Touch ID)',
-      'Tính năng đăng nhập sinh trắc học đang được đồng bộ với thiết bị của bạn.'
-    );
+  const handleBiometricPress = async () => {
+    const success = await loginWithBiometrics();
+    if (success) {
+      router.replace('/(tabs)');
+    } else {
+      const authErr = useAuthStore.getState().error;
+      Alert.alert(
+        'Xác thực ' + getBiometricTitle(),
+        authErr || 'Xác thực sinh trắc học không thành công. Vui lòng đăng nhập bằng Email và Mật khẩu.'
+      );
+    }
   };
 
   return (
@@ -293,12 +323,19 @@ export function SignInScreen() {
         </View>
 
         {/* Biometric Face ID Authentication Section */}
-        {!isSignUpMode && (
+        {!isSignUpMode && isBiometricAvailable && (
           <View style={styles.biometricSection}>
-            <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometricPress}>
-              <Ionicons name="scan-outline" size={26} color={COLORS.primary} />
+            <TouchableOpacity
+              style={styles.biometricBtn}
+              onPress={handleBiometricPress}
+              disabled={isLoading}
+              activeOpacity={0.8}
+            >
+              <Ionicons name={getBiometricIcon()} size={26} color={COLORS.primary} />
             </TouchableOpacity>
-            <Text style={styles.biometricLabel}>Đăng nhập nhanh bằng Face ID</Text>
+            <Text style={styles.biometricLabel}>
+              Đăng nhập nhanh bằng {getBiometricTitle()}
+            </Text>
           </View>
         )}
 
