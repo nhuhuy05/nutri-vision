@@ -10,32 +10,32 @@ export class ProfileRemoteDataSource {
       .single();
 
     if (error) {
-      // Return default profile fallback if record not found
+      // Fallback profile if record not found yet
       return {
         id: userId,
         email: 'user@example.com',
-        name: 'NutriVision User',
+        name: 'Người dùng NutriVision',
       };
     }
 
     return {
       id: data.id,
       email: data.email,
-      name: data.name ?? 'NutriVision User',
+      name: data.name ?? 'Người dùng NutriVision',
     };
   }
 
   async updateProfile(profile: UserProfile): Promise<void> {
-    const { error } = await supabase.from('profiles').upsert({
-      id: profile.id,
-      email: profile.email,
-      name: profile.name,
-      updated_at: new Date().toISOString(),
-    });
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        name: profile.name,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', profile.id);
 
     if (error) {
       throw new Error(`Profile Update Error: ${error.message}`);
     }
   }
 }
-

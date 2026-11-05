@@ -8,9 +8,18 @@ import { ErrorMapper } from '../infrastructure/ErrorMapper';
 export class AuthRepositoryImpl implements IAuthRepository {
   constructor(private authRemoteDataSource: AuthRemoteDataSource) {}
 
-  async signIn(email: string): Promise<Result<Session, Failure>> {
+  async signUp(email: string, password: string, name: string): Promise<Result<Session, Failure>> {
     try {
-      const session = await this.authRemoteDataSource.signInWithEmail(email);
+      const session = await this.authRemoteDataSource.signUpWithEmail(email, password, name);
+      return ok(session);
+    } catch (e) {
+      return fail(ErrorMapper.toFailure(e));
+    }
+  }
+
+  async signIn(email: string, password: string): Promise<Result<Session, Failure>> {
+    try {
+      const session = await this.authRemoteDataSource.signInWithEmail(email, password);
       return ok(session);
     } catch (e) {
       return fail(ErrorMapper.toFailure(e));
@@ -35,4 +44,3 @@ export class AuthRepositoryImpl implements IAuthRepository {
     }
   }
 }
-
