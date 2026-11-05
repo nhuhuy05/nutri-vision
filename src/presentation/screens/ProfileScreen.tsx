@@ -6,7 +6,6 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from 'react-native';
 import { router } from 'expo-router';
@@ -14,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
 import { useAuthStore, useGoalStore } from '../store';
 import { useSync } from '../hooks/useSync';
+import { notify } from '../utils/notify';
 
 export function ProfileScreen() {
   const { user, isAuthenticated, logout, updateUserProfile, isLoading: isAuthLoading } = useAuthStore();
@@ -30,15 +30,15 @@ export function ProfileScreen() {
 
   const handleSaveProfileName = async () => {
     if (!nameInput.trim()) {
-      Alert.alert('Lỗi', 'Tên hiển thị không được để trống.');
+      notify.warning('Lỗi', 'Tên hiển thị không được để trống.');
       return;
     }
     const success = await updateUserProfile(nameInput.trim());
     if (success) {
       setIsEditingName(false);
-      Alert.alert('Thành công', 'Đã cập nhật hồ sơ cá nhân trên Supabase!');
+      notify.success('Thành công', 'Đã cập nhật hồ sơ cá nhân trên Supabase!');
     } else {
-      Alert.alert('Thất bại', 'Không thể cập nhật hồ sơ lúc này.');
+      notify.error('Thất bại', 'Không thể cập nhật hồ sơ lúc này.');
     }
   };
 
@@ -49,26 +49,27 @@ export function ProfileScreen() {
     const f = parseInt(fat, 10);
 
     if (isNaN(c) || isNaN(p) || isNaN(cb) || isNaN(f)) {
-      Alert.alert('Lỗi', 'Vui lòng nhập các chỉ số dinh dưỡng hợp lệ dạng số.');
+      notify.warning('Lỗi định dạng', 'Vui lòng nhập các chỉ số dinh dưỡng hợp lệ dạng số.');
       return;
     }
 
     updateGoals({ calories: c, protein: p, carbs: cb, fat: f });
-    Alert.alert('Thành công', 'Đã lưu mục tiêu dinh dưỡng cá nhân!');
+    notify.toast('Đã lưu mục tiêu dinh dưỡng cá nhân!');
   };
 
   const handleLogout = () => {
-    Alert.alert('Đăng xuất', 'Bạn có chắc chắn muốn đăng xuất tài khoản?', [
-      { text: 'Hủy', style: 'cancel' },
-      {
-        text: 'Đăng xuất',
-        style: 'destructive',
-        onPress: async () => {
-          await logout();
-          router.replace('/(auth)/sign-in');
-        },
+    notify.confirm(
+      'Đăng xuất',
+      'Bạn có chắc chắn muốn đăng xuất tài khoản khỏi NutriLens?',
+      async () => {
+        await logout();
+        notify.toast('Đã đăng xuất');
+        router.replace('/(auth)/sign-in');
       },
-    ]);
+      undefined,
+      'Đăng xuất',
+      'Hủy'
+    );
   };
 
   return (

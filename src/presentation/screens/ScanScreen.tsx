@@ -7,7 +7,6 @@ import {
   Image,
   ActivityIndicator,
   ScrollView,
-  Alert,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
@@ -15,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
 import { RecognitionResult } from '../../domain/entities/RecognitionResult';
 import { recognizeDishUseCase } from '../../di/container';
+import { notify } from '../utils/notify';
 
 export function ScanScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -28,7 +28,7 @@ export function ScanScreen() {
         : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permissionResult.granted) {
-        Alert.alert(
+        notify.warning(
           'Quyền truy cập',
           'Vui lòng cấp quyền để ứng dụng có thể chụp hoặc chọn ảnh món ăn.'
         );
@@ -56,7 +56,7 @@ export function ScanScreen() {
       }
     } catch (error) {
       console.error('Pick image error:', error);
-      Alert.alert('Lỗi', 'Không thể mở máy ảnh hoặc thư viện ảnh.');
+      notify.error('Lỗi', 'Không thể mở máy ảnh hoặc thư viện ảnh.');
     }
   };
 
@@ -68,11 +68,11 @@ export function ScanScreen() {
       if (result.success) {
         setCandidates(result.data);
       } else {
-        Alert.alert('Lỗi nhận diện', result.error.message);
+        notify.error('Lỗi nhận diện', result.error.message);
       }
     } catch (error) {
       console.error('AI recognition error:', error);
-      Alert.alert('Lỗi nhận diện', 'Không thể nhận diện món ăn. Vui lòng thử lại.');
+      notify.error('Lỗi nhận diện', 'Không thể nhận diện món ăn. Vui lòng thử lại.');
     } finally {
       setIsAnalyzing(false);
     }

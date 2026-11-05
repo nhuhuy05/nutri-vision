@@ -6,7 +6,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -15,6 +14,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
 import { useAuthStore } from '../store/authStore';
+import { notify } from '../utils/notify';
 
 export function SignInScreen() {
   const [isSignUpMode, setIsSignUpMode] = useState(false);
@@ -53,47 +53,47 @@ export function SignInScreen() {
   const handleSubmit = async () => {
     const cleanEmail = email.trim();
     if (!cleanEmail || !cleanEmail.includes('@')) {
-      Alert.alert('Lỗi định dạng', 'Vui lòng nhập địa chỉ email hợp lệ.');
+      notify.warning('Lỗi định dạng', 'Vui lòng nhập địa chỉ email hợp lệ.');
       return;
     }
 
     if (!password || password.length < 6) {
-      Alert.alert('Mật khẩu quá ngắn', 'Mật khẩu phải có ít nhất 6 ký tự.');
+      notify.warning('Mật khẩu quá ngắn', 'Mật khẩu phải có ít nhất 6 ký tự.');
       return;
     }
 
     if (isSignUpMode && !name.trim()) {
-      Alert.alert('Thiếu thông tin', 'Vui lòng nhập họ tên của bạn để tạo hồ sơ.');
+      notify.warning('Thiếu thông tin', 'Vui lòng nhập họ tên của bạn để tạo hồ sơ.');
       return;
     }
 
     if (isSignUpMode) {
       const success = await register(cleanEmail, password, name.trim());
       if (success) {
-        Alert.alert(
-          'Đăng ký thành công',
-          'Chào mừng bạn đến với NutriLens! Hãy bắt đầu thiết lập chỉ số dinh dưỡng cá nhân nhé.',
-          [
-            {
-              text: 'Thiết lập ngay (3 bước)',
-              onPress: () => router.replace('/(auth)/onboarding'),
-            },
-            {
-              text: 'Để sau (Vào trang chủ)',
-              style: 'cancel',
-              onPress: () => router.replace('/(tabs)'),
-            },
-          ]
+        notify.confirm(
+          'Đăng ký thành công! 🎉',
+          'Chào mừng bạn đến với NutriLens! Hãy cùng thiết lập chỉ số dinh dưỡng cá nhân nhé.',
+          () => router.replace('/(auth)/onboarding'),
+          () => router.replace('/(tabs)'),
+          'Thiết lập ngay',
+          'Để sau'
         );
       } else {
-        Alert.alert('Đăng ký thất bại', error || 'Không thể tạo tài khoản, vui lòng thử lại.');
+        notify.error(
+          'Đăng ký thất bại',
+          error || 'Không thể tạo tài khoản, vui lòng thử lại sau.'
+        );
       }
     } else {
       const success = await login(cleanEmail, password);
       if (success) {
+        notify.toast('Chào mừng bạn quay trở lại NutriLens!');
         router.replace('/(tabs)');
       } else {
-        Alert.alert('Đăng nhập thất bại', error || 'Email hoặc mật khẩu không chính xác.');
+        notify.error(
+          'Đăng nhập thất bại',
+          error || 'Email hoặc mật khẩu không chính xác.'
+        );
       }
     }
   };
@@ -105,10 +105,11 @@ export function SignInScreen() {
   const handleBiometricPress = async () => {
     const success = await loginWithBiometrics();
     if (success) {
+      notify.toast('Đăng nhập sinh trắc học thành công!');
       router.replace('/(tabs)');
     } else {
       const authErr = useAuthStore.getState().error;
-      Alert.alert(
+      notify.error(
         'Xác thực ' + getBiometricTitle(),
         authErr || 'Xác thực sinh trắc học không thành công. Vui lòng đăng nhập bằng Email và Mật khẩu.'
       );
@@ -139,7 +140,7 @@ export function SignInScreen() {
         <TouchableOpacity
           style={styles.circleBtn}
           onPress={() =>
-            Alert.alert(
+            notify.info(
               'Trợ giúp NutriLens',
               'Nếu bạn gặp sự cố đăng nhập hoặc quên mật khẩu, hãy liên hệ hỗ trợ: support@nutrilens.app'
             )
@@ -302,7 +303,7 @@ export function SignInScreen() {
 
               <TouchableOpacity
                 onPress={() =>
-                  Alert.alert(
+                  notify.info(
                     'Quên mật khẩu?',
                     'Vui lòng nhập email vào ô trên và liên hệ hỗ trợ để nhận liên kết đặt lại mật khẩu.'
                   )

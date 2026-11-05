@@ -7,6 +7,7 @@ import { getDatabase } from '@/data/datasources/local/db/connection';
 import { COLORS } from '@/presentation/theme';
 import { queryClient } from '@/presentation/query';
 import { useAuthStore } from '@/presentation/store/authStore';
+import { NotificationProvider } from '@/presentation/components';
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
@@ -61,6 +62,7 @@ export default function RootLayout() {
           }}
         />
       </Stack>
+      <NotificationProvider />
     </QueryClientProvider>
   );
 }

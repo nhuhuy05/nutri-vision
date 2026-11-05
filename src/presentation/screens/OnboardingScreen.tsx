@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -14,6 +13,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
 import { useGoalStore, useAuthStore } from '../store';
+import { notify } from '../utils/notify';
 
 type Gender = 'female' | 'male' | 'other';
 type ActivityLevel = 'sedentary' | 'light' | 'moderate' | 'very_active';
@@ -136,6 +136,7 @@ export function OnboardingScreen() {
         },
         user?.id || 'guest_user_id'
       );
+      notify.toast('Đã lưu kế hoạch dinh dưỡng thành công! 🎉');
       router.replace('/(tabs)');
     } catch {
       router.replace('/(tabs)');
@@ -176,7 +177,7 @@ export function OnboardingScreen() {
         <TouchableOpacity
           style={styles.circleBtn}
           onPress={() =>
-            Alert.alert(
+            notify.info(
               'Cố vấn dinh dưỡng NutriLens AI',
               'Các chỉ số của bạn được tính toán theo công thức khoa học lâm sàng Mifflin-St Jeor nhằm thiết lập mức calo và macro chuẩn hóa cho ẩm thực Việt.'
             )
@@ -1610,3 +1611,4 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
 });
+
