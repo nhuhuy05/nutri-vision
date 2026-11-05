@@ -26,7 +26,6 @@ export function CustomAlertModal() {
           iconColor: '#DC2626',
           iconBg: '#FEF2F2',
           borderColor: '#FEE2E2',
-          gradientColor: '#DC2626',
         };
       case 'success':
         return {
@@ -34,7 +33,6 @@ export function CustomAlertModal() {
           iconColor: COLORS.primary,
           iconBg: '#F0FDF4',
           borderColor: '#DCFCE7',
-          gradientColor: COLORS.primary,
         };
       case 'warning':
         return {
@@ -42,7 +40,6 @@ export function CustomAlertModal() {
           iconColor: '#D97706',
           iconBg: '#FFFBEB',
           borderColor: '#FEF3C7',
-          gradientColor: '#D97706',
         };
       case 'info':
       default:
@@ -51,7 +48,6 @@ export function CustomAlertModal() {
           iconColor: COLORS.primary,
           iconBg: '#F0FDF4',
           borderColor: '#DCFCE7',
-          gradientColor: COLORS.neonMint,
         };
     }
   };
@@ -83,11 +79,6 @@ export function CustomAlertModal() {
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback>
             <View style={styles.card}>
-              {/* Decorative Accent Top Line */}
-              <View
-                style={[styles.topAccentLine, { backgroundColor: config.gradientColor }]}
-              />
-
               {/* Icon Circle */}
               <View
                 style={[
@@ -167,13 +158,6 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 8,
     overflow: 'hidden',
-  },
-  topAccentLine: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 4,
   },
   iconContainer: {
     width: 62,
