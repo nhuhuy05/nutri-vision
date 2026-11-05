@@ -39,6 +39,15 @@ export class AuthRepositoryImpl implements IAuthRepository {
     }
   }
 
+  async resetPassword(email: string): Promise<Result<void, Failure>> {
+    try {
+      await this.authRemoteDataSource.resetPasswordForEmail(email);
+      return ok(undefined);
+    } catch (e) {
+      return fail(ErrorMapper.toFailure(e));
+    }
+  }
+
   async getCurrentSession(): Promise<Result<Session | null, Failure>> {
     try {
       const session = await this.authRemoteDataSource.getCurrentSession();
@@ -48,7 +57,7 @@ export class AuthRepositoryImpl implements IAuthRepository {
     }
   }
 
-  async checkBiometrics(): Promise<{ isAvailable: boolean; biometryType: string }> {
+  async checkBiometrics(): Promise<{ isAvailable: boolean; biometryType: string; hasEnrolledKey: boolean }> {
     return this.biometricAuthDataSource.checkAvailability();
   }
 

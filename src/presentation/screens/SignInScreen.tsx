@@ -21,22 +21,33 @@ export function SignInScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
   const {
     login,
     register,
+    resetPassword,
     loginWithBiometrics,
     checkBiometrics,
     isBiometricAvailable,
+    hasBiometricKey,
     biometryType,
     isLoading,
     error,
   } = useAuthStore();
 
   useEffect(() => {
-    checkBiometrics();
+    const initAuthScreen = async () => {
+      await checkBiometrics();
+      const saved = useAuthStore.getState().savedEmail;
+      if (saved) {
+        setEmail((prev) => prev || saved);
+      }
+    };
+    initAuthScreen();
   }, [checkBiometrics]);
 
   const getBiometricTitle = () => {
@@ -52,22 +63,27 @@ export function SignInScreen() {
 
   const handleSubmit = async () => {
     const cleanEmail = email.trim();
-    if (!cleanEmail || !cleanEmail.includes('@')) {
-      notify.warning('Lỗi định dạng', 'Vui lòng nhập địa chỉ email hợp lệ.');
+    if (!cleanEmail || !cleanEmail.includes('@') || !cleanEmail.includes('.')) {
+      notify.warning('Email không hợp lệ', 'Vui lòng nhập địa chỉ email chính xác (ví dụ: ten@gmail.com).');
       return;
     }
 
     if (!password || password.length < 6) {
-      notify.warning('Mật khẩu quá ngắn', 'Mật khẩu phải có ít nhất 6 ký tự.');
-      return;
-    }
-
-    if (isSignUpMode && !name.trim()) {
-      notify.warning('Thiếu thông tin', 'Vui lòng nhập họ tên của bạn để tạo hồ sơ.');
+      notify.warning('Mật khẩu quá ngắn', 'Mật khẩu phải có độ dài tối thiểu 6 ký tự.');
       return;
     }
 
     if (isSignUpMode) {
+      if (!name.trim()) {
+        notify.warning('Thiếu họ tên', 'Vui lòng nhập họ và tên của bạn để cá nhân hóa tài khoản.');
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        notify.warning('Mật khẩu không khớp', 'Mật khẩu xác nhận không trùng khớp với mật khẩu đã nhập.');
+        return;
+      }
+
       const success = await register(cleanEmail, password, name.trim());
       if (success) {
         notify.confirm(
@@ -80,22 +96,52 @@ export function SignInScreen() {
         );
       } else {
         notify.error(
-          'Đăng ký thất bại',
-          error || 'Không thể tạo tài khoản, vui lòng thử lại sau.'
+          'Đăng ký không thành công',
+          error || 'Không thể tạo tài khoản lúc này, vui lòng thử lại sau.'
         );
       }
     } else {
-      const success = await login(cleanEmail, password);
+      const success = await login(cleanEmail, password, rememberMe);
       if (success) {
         notify.toast('Chào mừng bạn quay trở lại NutriLens!');
         router.replace('/(tabs)');
       } else {
         notify.error(
-          'Đăng nhập thất bại',
+          'Đăng nhập không thành công',
           error || 'Email hoặc mật khẩu không chính xác.'
         );
       }
     }
+  };
+
+  const handleForgotPassword = () => {
+    const cleanEmail = email.trim();
+    if (!cleanEmail || !cleanEmail.includes('@')) {
+      notify.warning(
+        'Nhập email',
+        'Vui lòng điền địa chỉ email của bạn vào ô bên trên để NutriLens gửi liên kết đặt lại mật khẩu.'
+      );
+      return;
+    }
+
+    notify.confirm(
+      'Khôi phục mật khẩu',
+      `Gửi email hướng dẫn đặt lại mật khẩu đến: ${cleanEmail}?`,
+      async () => {
+        const ok = await resetPassword(cleanEmail);
+        if (ok) {
+          notify.success(
+            'Đã gửi liên kết thành công!',
+            'Vui lòng kiểm tra hộp thư đến (hoặc hòm thư rác) để hoàn tất đặt lại mật khẩu mới.'
+          );
+        } else {
+          notify.error('Lỗi gửi email', error || 'Không thể gửi email khôi phục lúc này. Vui lòng thử lại sau.');
+        }
+      },
+      () => {},
+      'Gửi liên kết',
+      'Hủy'
+    );
   };
 
   const handleContinueAsGuest = () => {
@@ -103,9 +149,19 @@ export function SignInScreen() {
   };
 
   const handleBiometricPress = async () => {
+    if (!hasBiometricKey) {
+      notify.info(
+        'Kích hoạt ' + getBiometricTitle(),
+        'Bạn hãy đăng nhập bằng Email và Mật khẩu lần đầu tiên và bật "Ghi nhớ đăng nhập" để kích hoạt ' +
+          getBiometricTitle() +
+          ' cho các lần mở app sau nhé!'
+      );
+      return;
+    }
+
     const success = await loginWithBiometrics();
     if (success) {
-      notify.toast('Đăng nhập sinh trắc học thành công!');
+      notify.toast('Đăng nhập sinh trắc học thành công! 🎉');
       router.replace('/(tabs)');
     } else {
       const authErr = useAuthStore.getState().error;
@@ -114,6 +170,20 @@ export function SignInScreen() {
         authErr || 'Xác thực sinh trắc học không thành công. Vui lòng đăng nhập bằng Email và Mật khẩu.'
       );
     }
+  };
+
+  const handleShowTerms = () => {
+    notify.info(
+      'Điều khoản dịch vụ',
+      'NutriLens cung cấp công cụ tính toán calo và dinh dưỡng dựa trên ảnh chụp AI nhằm mục đích tham khảo và hỗ trợ lối sống lành mạnh. Ứng dụng không thay thế chẩn đoán y khoa chuyên nghiệp.'
+    );
+  };
+
+  const handleShowPrivacy = () => {
+    notify.info(
+      'Chính sách bảo mật',
+      'NutriLens cam kết bảo mật 100% hình ảnh bữa ăn và chỉ số sinh học cá nhân của bạn, không chia sẻ cho bên thứ ba vì mục đích thương mại.'
+    );
   };
 
   return (
@@ -134,7 +204,7 @@ export function SignInScreen() {
         </TouchableOpacity>
 
         <Text style={styles.topBarTitle}>
-          {isSignUpMode ? 'Đăng Ký NutriLens' : 'Đăng Nhập NutriLens'}
+          {isSignUpMode ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập'}
         </Text>
 
         <TouchableOpacity
@@ -142,7 +212,7 @@ export function SignInScreen() {
           onPress={() =>
             notify.info(
               'Trợ giúp NutriLens',
-              'Nếu bạn gặp sự cố đăng nhập hoặc quên mật khẩu, hãy liên hệ hỗ trợ: support@nutrilens.app'
+              'Nếu bạn gặp sự cố đăng nhập hoặc cần hỗ trợ tài khoản, vui lòng liên hệ đội ngũ cố vấn: support@nutrilens.app'
             )
           }
         >
@@ -213,7 +283,9 @@ export function SignInScreen() {
           {/* Full Name Field (Sign Up Only) */}
           {isSignUpMode && (
             <View style={styles.fieldGroup}>
-              <Text style={styles.fieldLabel}>Họ và tên</Text>
+              <Text style={styles.fieldLabel}>
+                Họ và tên <Text style={{ color: COLORS.danger }}>*</Text>
+              </Text>
               <View style={styles.inputContainer}>
                 <Ionicons
                   name="person-outline"
@@ -233,9 +305,12 @@ export function SignInScreen() {
             </View>
           )}
 
-          {/* Email or Phone Field */}
+          {/* Email Field */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Email hoặc Số điện thoại</Text>
+            <Text style={styles.fieldLabel}>
+              {isSignUpMode ? 'Email đăng ký' : 'Email đăng nhập'}{' '}
+              <Text style={{ color: COLORS.danger }}>*</Text>
+            </Text>
             <View style={styles.inputContainer}>
               <Ionicons
                 name="mail-outline"
@@ -258,7 +333,9 @@ export function SignInScreen() {
 
           {/* Password Field */}
           <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>Mật khẩu</Text>
+            <Text style={styles.fieldLabel}>
+              Mật khẩu <Text style={{ color: COLORS.danger }}>*</Text>
+            </Text>
             <View style={styles.inputContainer}>
               <Ionicons
                 name="lock-closed-outline"
@@ -288,7 +365,43 @@ export function SignInScreen() {
             </View>
           </View>
 
-          {/* Helper Row: Remember Me & Forgot Password */}
+          {/* Confirm Password Field (Sign Up Only) */}
+          {isSignUpMode && (
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>
+                Xác nhận lại mật khẩu <Text style={{ color: COLORS.danger }}>*</Text>
+              </Text>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={19}
+                  color={COLORS.textSecondary}
+                  style={styles.leftIcon}
+                />
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="Nhập lại mật khẩu vừa đặt"
+                  placeholderTextColor={COLORS.textMuted}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity
+                  onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={styles.rightIconBtn}
+                >
+                  <Ionicons
+                    name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                    size={19}
+                    color={COLORS.textSecondary}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Helper Row: Remember Me & Forgot Password (Sign In Only) */}
           {!isSignUpMode && (
             <View style={styles.helperRow}>
               <TouchableOpacity
@@ -301,20 +414,30 @@ export function SignInScreen() {
                 <Text style={styles.rememberMeText}>Ghi nhớ đăng nhập</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() =>
-                  notify.info(
-                    'Quên mật khẩu?',
-                    'Vui lòng nhập email vào ô trên và liên hệ hỗ trợ để nhận liên kết đặt lại mật khẩu.'
-                  )
-                }
-              >
+              <TouchableOpacity onPress={handleForgotPassword}>
                 <Text style={styles.forgotPasswordText}>Quên mật khẩu?</Text>
               </TouchableOpacity>
             </View>
           )}
 
-          {/* Primary Action CTA Button (Forest Green Pill) */}
+          {/* Terms & Privacy Note (Sign Up Only) */}
+          {isSignUpMode && (
+            <View style={styles.termsBox}>
+              <Text style={styles.termsText}>
+                Bằng việc tạo tài khoản, bạn đồng ý với{' '}
+                <Text style={styles.termsLink} onPress={handleShowTerms}>
+                  Điều khoản dịch vụ
+                </Text>{' '}
+                và{' '}
+                <Text style={styles.termsLink} onPress={handleShowPrivacy}>
+                  Chính sách bảo mật
+                </Text>{' '}
+                của NutriLens.
+              </Text>
+            </View>
+          )}
+
+          {/* Primary Action CTA Button */}
           <TouchableOpacity
             style={[styles.primaryCtaBtn, isLoading && { opacity: 0.75 }]}
             onPress={handleSubmit}
@@ -325,7 +448,7 @@ export function SignInScreen() {
             ) : (
               <View style={styles.ctaContentRow}>
                 <Text style={styles.primaryCtaText}>
-                  {isSignUpMode ? 'Tạo Tài Khoản' : 'Đăng Nhập'}
+                  {isSignUpMode ? 'Tạo Tài Khoản Mới' : 'Đăng Nhập'}
                 </Text>
                 <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
               </View>
@@ -333,19 +456,25 @@ export function SignInScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Biometric Face ID Authentication Section */}
+        {/* Biometric Face ID Authentication Section (Sign In Only) */}
         {!isSignUpMode && isBiometricAvailable && (
           <View style={styles.biometricSection}>
             <TouchableOpacity
-              style={styles.biometricBtn}
+              style={[styles.biometricBtn, !hasBiometricKey && styles.biometricBtnUnlinked]}
               onPress={handleBiometricPress}
               disabled={isLoading}
               activeOpacity={0.8}
             >
-              <Ionicons name={getBiometricIcon()} size={26} color={COLORS.primary} />
+              <Ionicons
+                name={getBiometricIcon()}
+                size={26}
+                color={hasBiometricKey ? COLORS.primary : COLORS.textMuted}
+              />
             </TouchableOpacity>
             <Text style={styles.biometricLabel}>
-              Đăng nhập nhanh bằng {getBiometricTitle()}
+              {hasBiometricKey
+                ? `Đăng nhập nhanh bằng ${getBiometricTitle()}`
+                : `Liên kết ${getBiometricTitle()} cho lần đăng nhập sau`}
             </Text>
           </View>
         )}
@@ -363,19 +492,7 @@ export function SignInScreen() {
           <Ionicons name="chevron-forward" size={15} color={COLORS.textSecondary} />
         </TouchableOpacity>
 
-        {/* Action: Personalized Nutrition Profile Setup */}
-        <TouchableOpacity
-          style={styles.onboardingPillBtn}
-          onPress={() => router.push('/(auth)/onboarding')}
-        >
-          <Ionicons name="sparkles" size={15} color={COLORS.primary} />
-          <Text style={styles.onboardingPillText}>
-            Thiết lập mục tiêu dinh dưỡng cá nhân
-          </Text>
-          <Ionicons name="chevron-forward" size={15} color={COLORS.primary} />
-        </TouchableOpacity>
-
-        {/* Bottom Nutrition Quote Tagline & Footer CTA */}
+        {/* Bottom Nutrition Quote Tagline & Footer Mode Switcher */}
         <View style={styles.footerSection}>
           <View style={styles.streakQuotePill}>
             <Ionicons name="heart" size={13} color={COLORS.primary} />
@@ -403,7 +520,7 @@ export function SignInScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background, // #F5FBF4
+    backgroundColor: COLORS.background,
   },
   topBar: {
     flexDirection: 'row',
@@ -622,10 +739,26 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     fontWeight: '600',
   },
+  termsBox: {
+    marginBottom: 16,
+    marginTop: 4,
+    paddingHorizontal: 4,
+  },
+  termsText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    lineHeight: 18,
+    textAlign: 'center',
+  },
+  termsLink: {
+    color: COLORS.primary,
+    fontWeight: '700',
+    textDecorationLine: 'underline',
+  },
   primaryCtaBtn: {
-    backgroundColor: COLORS.primary, // Deep Forest Green #1B5E20
+    backgroundColor: COLORS.primary,
     height: 52,
-    borderRadius: 9999, // Pill shape
+    borderRadius: 9999,
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: COLORS.primary,
@@ -664,6 +797,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: 6,
     elevation: 2,
+  },
+  biometricBtnUnlinked: {
+    opacity: 0.65,
+    borderColor: COLORS.borderLight,
   },
   biometricLabel: {
     fontSize: 12,
@@ -706,23 +843,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.textSecondary,
-  },
-  onboardingPillBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F0FDF4',
-    paddingVertical: 12,
-    borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: '#DCFCE7',
-    gap: 6,
-    marginTop: 10,
-  },
-  onboardingPillText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.primaryDark,
   },
   footerSection: {
     alignItems: 'center',

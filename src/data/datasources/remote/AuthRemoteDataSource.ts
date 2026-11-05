@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { Session } from '../../../domain/entities/Session';
+import { secureSessionStorage } from '../../infrastructure/SecureSessionStorage';
 
 export class AuthRemoteDataSource {
   /**
@@ -24,6 +25,10 @@ export class AuthRemoteDataSource {
     const user = data.user;
     if (!user) {
       throw new Error('Đăng ký thất bại: Không tìm thấy thông tin tài khoản.');
+    }
+
+    if (data.session?.refresh_token) {
+      await secureSessionStorage.setItem('@nutrivision_biometric_token', data.session.refresh_token);
     }
 
     return {
@@ -56,6 +61,10 @@ export class AuthRemoteDataSource {
       throw new Error('Đăng nhập thất bại: Không tìm thấy người dùng.');
     }
 
+    if (data.session?.refresh_token) {
+      await secureSessionStorage.setItem('@nutrivision_biometric_token', data.session.refresh_token);
+    }
+
     return {
       user: {
         id: user.id,
@@ -66,6 +75,16 @@ export class AuthRemoteDataSource {
       refreshToken: data.session.refresh_token,
       expiresAt: data.session.expires_at,
     };
+  }
+
+  /**
+   * Gửi email khôi phục / đặt lại mật khẩu.
+   */
+  async resetPasswordForEmail(email: string): Promise<void> {
+    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    if (error) {
+      throw new Error(`Auth ResetPassword Error: ${error.message}`);
+    }
   }
 
   /**

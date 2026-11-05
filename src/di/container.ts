@@ -40,6 +40,7 @@ import { UpdateDailyGoalsUseCase } from '../domain/usecases/goals/UpdateDailyGoa
 import { SignUpUseCase } from '../domain/usecases/auth/SignUpUseCase';
 import { SignInUseCase } from '../domain/usecases/auth/SignInUseCase';
 import { SignOutUseCase } from '../domain/usecases/auth/SignOutUseCase';
+import { ResetPasswordUseCase } from '../domain/usecases/auth/ResetPasswordUseCase';
 import { GetCurrentSessionUseCase } from '../domain/usecases/auth/GetCurrentSessionUseCase';
 import { AuthenticateWithBiometricsUseCase } from '../domain/usecases/auth/AuthenticateWithBiometricsUseCase';
 import { CheckBiometricAvailabilityUseCase } from '../domain/usecases/auth/CheckBiometricAvailabilityUseCase';
@@ -97,6 +98,7 @@ export const updateDailyGoalsUseCase = new UpdateDailyGoalsUseCase(goalRepositor
 export const signUpUseCase = new SignUpUseCase(authRepository);
 export const signInUseCase = new SignInUseCase(authRepository);
 export const signOutUseCase = new SignOutUseCase(authRepository);
+export const resetPasswordUseCase = new ResetPasswordUseCase(authRepository);
 export const getCurrentSessionUseCase = new GetCurrentSessionUseCase(authRepository);
 export const authenticateWithBiometricsUseCase = new AuthenticateWithBiometricsUseCase(authRepository);
 export const checkBiometricAvailabilityUseCase = new CheckBiometricAvailabilityUseCase(authRepository);

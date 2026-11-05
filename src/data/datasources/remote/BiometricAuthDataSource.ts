@@ -1,18 +1,19 @@
 import * as LocalAuthentication from 'expo-local-authentication';
 import { supabase } from './supabaseClient';
 import { Session } from '../../../domain/entities/Session';
+import { secureSessionStorage } from '../../infrastructure/SecureSessionStorage';
 
 export class BiometricAuthDataSource {
   /**
    * Kiểm tra xem thiết bị có hỗ trợ phần cứng và người dùng đã đăng ký Face ID / Vân tay chưa.
    */
-  async checkAvailability(): Promise<{ isAvailable: boolean; biometryType: string }> {
+  async checkAvailability(): Promise<{ isAvailable: boolean; biometryType: string; hasEnrolledKey: boolean }> {
     try {
       const hasHardware = await LocalAuthentication.hasHardwareAsync();
       const isEnrolled = await LocalAuthentication.isEnrolledAsync();
 
       if (!hasHardware || !isEnrolled) {
-        return { isAvailable: false, biometryType: 'NONE' };
+        return { isAvailable: false, biometryType: 'NONE', hasEnrolledKey: false };
       }
 
       const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
@@ -23,13 +24,16 @@ export class BiometricAuthDataSource {
         biometryType = 'FINGERPRINT';
       }
 
+      const storedToken = await secureSessionStorage.getItem('@nutrivision_biometric_token');
+
       return {
         isAvailable: true,
         biometryType,
+        hasEnrolledKey: !!storedToken,
       };
     } catch (e) {
       console.warn('Error checking biometric availability:', e);
-      return { isAvailable: false, biometryType: 'NONE' };
+      return { isAvailable: false, biometryType: 'NONE', hasEnrolledKey: false };
     }
   }
 
@@ -42,15 +46,28 @@ export class BiometricAuthDataSource {
       throw new Error('Thiết bị của bạn không hỗ trợ hoặc chưa thiết lập Face ID / Vân tay.');
     }
 
-    // 1. Kiểm tra xem trên máy đã có phiên đăng nhập trước đó chưa
-    const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-    if (sessionError) {
-      throw new Error(`Lỗi kiểm tra phiên: ${sessionError.message}`);
+    // 1. Kiểm tra session hiện tại hoặc token đã lưu trong SecureStore
+    const { data: sessionData } = await supabase.auth.getSession();
+    let validSession = sessionData?.session;
+
+    if (!validSession) {
+      const storedRefreshToken = await secureSessionStorage.getItem('@nutrivision_biometric_token');
+      if (storedRefreshToken) {
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession({
+          refresh_token: storedRefreshToken,
+        });
+        if (!refreshError && refreshData.session) {
+          validSession = refreshData.session;
+          if (refreshData.session.refresh_token) {
+            await secureSessionStorage.setItem('@nutrivision_biometric_token', refreshData.session.refresh_token);
+          }
+        }
+      }
     }
 
-    if (!sessionData.session?.user) {
+    if (!validSession?.user) {
       throw new Error(
-        'Chưa tìm thấy phiên đăng nhập trên thiết bị. Vui lòng đăng nhập bằng Email và Mật khẩu lần đầu tiên để liên kết Face ID.'
+        'Bạn cần đăng nhập bằng Email & Mật khẩu lần đầu tiên để liên kết Face ID / Sinh trắc học.'
       );
     }
 
@@ -70,16 +87,16 @@ export class BiometricAuthDataSource {
     }
 
     // 3. Khôi phục session hợp lệ
-    const user = sessionData.session.user;
+    const user = validSession.user;
     return {
       user: {
         id: user.id,
         email: user.email ?? '',
         name: user.user_metadata?.name ?? (user.email ? user.email.split('@')[0] : 'User'),
       },
-      accessToken: sessionData.session.access_token,
-      refreshToken: sessionData.session.refresh_token,
-      expiresAt: sessionData.session.expires_at,
+      accessToken: validSession.access_token,
+      refreshToken: validSession.refresh_token,
+      expiresAt: validSession.expires_at,
     };
   }
 }

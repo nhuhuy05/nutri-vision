@@ -4,12 +4,14 @@ import {
   signUpUseCase,
   signInUseCase,
   signOutUseCase,
+  resetPasswordUseCase,
   getCurrentSessionUseCase,
   authenticateWithBiometricsUseCase,
   checkBiometricAvailabilityUseCase,
   getProfileUseCase,
   updateProfileUseCase,
 } from '../../di/container';
+import { secureSessionStorage } from '../../data/infrastructure/SecureSessionStorage';
 
 interface AuthState {
   user: UserProfile | null;
@@ -17,11 +19,14 @@ interface AuthState {
   isLoading: boolean;
   error: string | null;
   isBiometricAvailable: boolean;
+  hasBiometricKey: boolean;
   biometryType: string;
+  savedEmail: string;
   checkSession: () => Promise<void>;
   checkBiometrics: () => Promise<void>;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
   loginWithBiometrics: () => Promise<boolean>;
+  resetPassword: (email: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<boolean>;
   updateUserProfile: (name: string) => Promise<boolean>;
   logout: () => Promise<void>;
@@ -37,17 +42,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isLoading: false,
   error: null,
   isBiometricAvailable: false,
+  hasBiometricKey: false,
   biometryType: 'Face ID',
+  savedEmail: '',
 
   checkBiometrics: async () => {
     try {
       const res = await checkBiometricAvailabilityUseCase.execute();
+      const saved = await secureSessionStorage.getItem('@nutrivision_saved_email');
       set({
         isBiometricAvailable: res.isAvailable,
         biometryType: res.biometryType || 'Face ID',
+        hasBiometricKey: res.hasEnrolledKey,
+        savedEmail: saved || '',
       });
     } catch {
-      set({ isBiometricAvailable: false });
+      set({ isBiometricAvailable: false, hasBiometricKey: false });
     }
   },
 
@@ -76,10 +86,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  login: async (email: string, password: string) => {
+  login: async (email: string, password: string, rememberMe: boolean = true) => {
     set({ isLoading: true, error: null });
     const result = await signInUseCase.execute(email, password);
     if (result.success) {
+      if (rememberMe) {
+        await secureSessionStorage.setItem('@nutrivision_saved_email', email);
+      } else {
+        await secureSessionStorage.removeItem('@nutrivision_saved_email');
+      }
+
       const sessionUser = result.data.user;
       
       // Get full profile
@@ -92,6 +108,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         user: userProfile,
         isAuthenticated: true,
         isLoading: false,
+        savedEmail: rememberMe ? email : '',
+        hasBiometricKey: true,
       });
       return true;
     } else {
@@ -99,6 +117,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         error: result.error.message,
       });
+      return false;
+    }
+  },
+
+  resetPassword: async (email: string) => {
+    set({ isLoading: true, error: null });
+    const result = await resetPasswordUseCase.execute(email);
+    set({ isLoading: false });
+    if (result.success) {
+      return true;
+    } else {
+      set({ error: result.error.message });
       return false;
     }
   },
