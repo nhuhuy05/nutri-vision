@@ -10,3 +10,4 @@ export class UpdateProfileUseCase {
     return this.profileRepo.updateProfile(profile);
   }
 }
+

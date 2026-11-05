@@ -10,3 +10,4 @@ export class GetProfileUseCase {
     return this.profileRepo.getProfile(userId);
   }
 }
+

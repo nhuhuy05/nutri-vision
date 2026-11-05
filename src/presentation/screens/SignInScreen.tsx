@@ -22,6 +22,7 @@ export function SignInScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const { login, register, isLoading, error } = useAuthStore();
 
@@ -47,8 +48,8 @@ export function SignInScreen() {
       if (success) {
         Alert.alert(
           'Đăng ký thành công',
-          'Tài khoản và hồ sơ của bạn đã được khởi tạo trên Supabase!',
-          [{ text: 'Vào ứng dụng', onPress: () => router.replace('/(tabs)') }]
+          'Tài khoản và hồ sơ NutriLens của bạn đã được khởi tạo thành công!',
+          [{ text: 'Bắt đầu ngay', onPress: () => router.replace('/(tabs)') }]
         );
       } else {
         Alert.alert('Đăng ký thất bại', error || 'Không thể tạo tài khoản, vui lòng thử lại.');
@@ -67,55 +68,122 @@ export function SignInScreen() {
     router.replace('/(tabs)');
   };
 
+  const handleBiometricPress = () => {
+    Alert.alert(
+      'Sinh trắc học (Face ID / Touch ID)',
+      'Tính năng đăng nhập sinh trắc học đang được đồng bộ với thiết bị của bạn.'
+    );
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       style={styles.container}
     >
-      <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
-        {/* Header Branding */}
-        <View style={styles.header}>
-          <View style={styles.logoCircle}>
-            <Ionicons name="nutrition" size={38} color="#FFFFFF" />
+      {/* Top Navigation Bar */}
+      <View style={styles.topBar}>
+        <TouchableOpacity
+          style={styles.circleBtn}
+          onPress={() => {
+            if (router.canGoBack()) router.back();
+            else router.replace('/(tabs)');
+          }}
+        >
+          <Ionicons name="chevron-back" size={20} color={COLORS.text} />
+        </TouchableOpacity>
+
+        <Text style={styles.topBarTitle}>
+          {isSignUpMode ? 'Đăng Ký NutriLens' : 'Đăng Nhập NutriLens'}
+        </Text>
+
+        <TouchableOpacity
+          style={styles.circleBtn}
+          onPress={() =>
+            Alert.alert(
+              'Trợ giúp NutriLens',
+              'Nếu bạn gặp sự cố đăng nhập hoặc quên mật khẩu, hãy liên hệ hỗ trợ: support@nutrilens.app'
+            )
+          }
+        >
+          <Ionicons name="help-circle-outline" size={20} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Brand Ambient Sparkle & Greeting Block */}
+        <View style={styles.greetingBlock}>
+          <View style={styles.badgePill}>
+            <Ionicons name="sparkles" size={13} color={COLORS.primary} />
+            <Text style={styles.badgeText}>AI NUTRITIONIST</Text>
           </View>
-          <Text style={styles.title}>NutriVision</Text>
-          <Text style={styles.subtitle}>
-            Nhận diện món ăn Việt bằng AI & Theo dõi dinh dưỡng cá nhân
+
+          <Text style={styles.greetingTitle}>
+            {isSignUpMode ? 'Khởi đầu bữa ăn mới! 🌱' : 'Chào mừng trở lại! 👋'}
+          </Text>
+
+          <Text style={styles.greetingSubtitle}>
+            {isSignUpMode
+              ? 'Tạo tài khoản để cá nhân hóa khẩu phần ăn và nhận gợi ý thực đơn thông minh.'
+              : 'Nhập thông tin tài khoản NutriLens của bạn để tiếp tục theo dõi thực đơn lành mạnh mỗi ngày.'}
           </Text>
         </View>
 
-        {/* Auth Card */}
-        <View style={styles.card}>
+        {/* Ambient Visual Bento Insight Chip */}
+        <View style={styles.bentoChip}>
+          <View style={styles.bentoIconBox}>
+            <Ionicons name="book-outline" size={20} color={COLORS.primary} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.bentoTitle}>Thực đơn cá nhân hoá</Text>
+            <Text style={styles.bentoSubtitle}>Hơn 1,200 món ăn Việt chuẩn calo</Text>
+          </View>
+          <View style={styles.bentoArrowBox}>
+            <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
+          </View>
+        </View>
+
+        {/* Form Card */}
+        <View style={styles.formCard}>
           {/* Segmented Mode Toggle */}
-          <View style={styles.toggleRow}>
+          <View style={styles.segmentedToggle}>
             <TouchableOpacity
-              style={[styles.toggleBtn, !isSignUpMode && styles.toggleBtnActive]}
+              style={[styles.segmentBtn, !isSignUpMode && styles.segmentBtnActive]}
               onPress={() => setIsSignUpMode(false)}
             >
-              <Text style={[styles.toggleText, !isSignUpMode && styles.toggleTextActive]}>
+              <Text style={[styles.segmentText, !isSignUpMode && styles.segmentTextActive]}>
                 Đăng nhập
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.toggleBtn, isSignUpMode && styles.toggleBtnActive]}
+              style={[styles.segmentBtn, isSignUpMode && styles.segmentBtnActive]}
               onPress={() => setIsSignUpMode(true)}
             >
-              <Text style={[styles.toggleText, isSignUpMode && styles.toggleTextActive]}>
+              <Text style={[styles.segmentText, isSignUpMode && styles.segmentTextActive]}>
                 Đăng ký mới
               </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Name Field (Sign Up Only) */}
+          {/* Full Name Field (Sign Up Only) */}
           {isSignUpMode && (
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Họ và tên</Text>
-              <View style={styles.inputWrapper}>
-                <Ionicons name="person-outline" size={18} color={COLORS.textSecondary} />
+            <View style={styles.fieldGroup}>
+              <Text style={styles.fieldLabel}>Họ và tên</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons
+                  name="person-outline"
+                  size={19}
+                  color={COLORS.textSecondary}
+                  style={styles.leftIcon}
+                />
                 <TextInput
-                  style={styles.input}
-                  placeholder="vd: Nguyễn Văn A"
+                  style={styles.textInput}
+                  placeholder="vd: Linh Nguyễn"
+                  placeholderTextColor={COLORS.textMuted}
                   value={name}
                   onChangeText={setName}
                   autoCapitalize="words"
@@ -124,14 +192,20 @@ export function SignInScreen() {
             </View>
           )}
 
-          {/* Email Field */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Email tài khoản</Text>
-            <View style={styles.inputWrapper}>
-              <Ionicons name="mail-outline" size={18} color={COLORS.textSecondary} />
+          {/* Email or Phone Field */}
+          <View style={styles.fieldGroup}>
+            <Text style={styles.fieldLabel}>Email hoặc Số điện thoại</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons
+                name="mail-outline"
+                size={19}
+                color={COLORS.textSecondary}
+                style={styles.leftIcon}
+              />
               <TextInput
-                style={styles.input}
-                placeholder="vd: user@example.com"
+                style={styles.textInput}
+                placeholder="linh.nguyen@example.com"
+                placeholderTextColor={COLORS.textMuted}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -142,47 +216,124 @@ export function SignInScreen() {
           </View>
 
           {/* Password Field */}
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Mật khẩu</Text>
-            <View style={styles.inputWrapper}>
-              <Ionicons name="lock-closed-outline" size={18} color={COLORS.textSecondary} />
+          <View style={styles.fieldGroup}>
+            <Text style={styles.fieldLabel}>Mật khẩu</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons
+                name="lock-closed-outline"
+                size={19}
+                color={COLORS.textSecondary}
+                style={styles.leftIcon}
+              />
               <TextInput
-                style={styles.input}
+                style={styles.textInput}
                 placeholder="Tối thiểu 6 ký tự"
+                placeholderTextColor={COLORS.textMuted}
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.rightIconBtn}
+              >
                 <Ionicons
                   name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                  size={18}
+                  size={19}
                   color={COLORS.textSecondary}
                 />
               </TouchableOpacity>
             </View>
           </View>
 
-          {/* Action Button */}
+          {/* Helper Row: Remember Me & Forgot Password */}
+          {!isSignUpMode && (
+            <View style={styles.helperRow}>
+              <TouchableOpacity
+                style={styles.rememberMeBtn}
+                onPress={() => setRememberMe(!rememberMe)}
+              >
+                <View style={[styles.checkbox, rememberMe && styles.checkboxActive]}>
+                  {rememberMe && <Ionicons name="checkmark" size={13} color="#FFFFFF" />}
+                </View>
+                <Text style={styles.rememberMeText}>Ghi nhớ đăng nhập</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={() =>
+                  Alert.alert(
+                    'Quên mật khẩu?',
+                    'Vui lòng nhập email vào ô trên và liên hệ hỗ trợ để nhận liên kết đặt lại mật khẩu.'
+                  )
+                }
+              >
+                <Text style={styles.forgotPasswordText}>Quên mật khẩu?</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {/* Primary Action CTA Button (Forest Green Pill) */}
           <TouchableOpacity
-            style={[styles.btn, isLoading && { opacity: 0.7 }]}
+            style={[styles.primaryCtaBtn, isLoading && { opacity: 0.75 }]}
             onPress={handleSubmit}
             disabled={isLoading}
           >
             {isLoading ? (
               <ActivityIndicator color="#FFFFFF" size="small" />
             ) : (
-              <Text style={styles.btnText}>
-                {isSignUpMode ? 'Tạo tài khoản' : 'Đăng nhập'}
-              </Text>
+              <View style={styles.ctaContentRow}>
+                <Text style={styles.primaryCtaText}>
+                  {isSignUpMode ? 'Tạo Tài Khoản' : 'Đăng Nhập'}
+                </Text>
+                <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
+              </View>
             )}
           </TouchableOpacity>
+        </View>
 
-          {/* Guest Mode Fallback */}
-          <TouchableOpacity style={styles.guestBtn} onPress={handleContinueAsGuest}>
-            <Text style={styles.guestBtnText}>Tiếp tục chế độ ngoại tuyến (Khách)</Text>
-          </TouchableOpacity>
+        {/* Biometric Face ID Authentication Section */}
+        {!isSignUpMode && (
+          <View style={styles.biometricSection}>
+            <TouchableOpacity style={styles.biometricBtn} onPress={handleBiometricPress}>
+              <Ionicons name="scan-outline" size={26} color={COLORS.primary} />
+            </TouchableOpacity>
+            <Text style={styles.biometricLabel}>Đăng nhập nhanh bằng Face ID</Text>
+          </View>
+        )}
+
+        {/* Elegant Divider */}
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>hoặc</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        {/* Secondary Action: Explore as Guest */}
+        <TouchableOpacity style={styles.guestPillBtn} onPress={handleContinueAsGuest}>
+          <Text style={styles.guestPillText}>Dùng thử với tư cách khách</Text>
+          <Ionicons name="chevron-forward" size={15} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+
+        {/* Bottom Nutrition Quote Tagline & Footer CTA */}
+        <View style={styles.footerSection}>
+          <View style={styles.streakQuotePill}>
+            <Ionicons name="heart" size={13} color={COLORS.primary} />
+            <Text style={styles.streakQuoteText}>
+              Đồng hành cùng 50,000+ bữa ăn lành mạnh
+            </Text>
+          </View>
+
+          <View style={styles.switchAuthRow}>
+            <Text style={styles.switchAuthPrompt}>
+              {isSignUpMode ? 'Đã có tài khoản NutriLens? ' : 'Chưa có tài khoản? '}
+            </Text>
+            <TouchableOpacity onPress={() => setIsSignUpMode(!isSignUpMode)}>
+              <Text style={styles.switchAuthAction}>
+                {isSignUpMode ? 'Đăng nhập ngay' : 'Đăng ký ngay'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -192,133 +343,341 @@ export function SignInScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: COLORS.background, // #F5FBF4
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: Platform.OS === 'ios' ? 52 : 36,
+    paddingBottom: 10,
     backgroundColor: COLORS.background,
   },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    padding: 20,
-    paddingVertical: 36,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  logoCircle: {
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: COLORS.primary,
+  circleBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 10,
-    shadowColor: COLORS.primary,
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '800',
-    color: COLORS.text,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
-    marginTop: 4,
-    paddingHorizontal: 20,
-  },
-  card: {
-    backgroundColor: COLORS.card,
-    borderRadius: 16,
-    padding: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
+    shadowColor: COLORS.cardShadow,
+    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 6,
+    shadowRadius: 4,
     elevation: 2,
   },
-  toggleRow: {
+  topBarTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 40,
+  },
+  greetingBlock: {
+    marginBottom: 16,
+  },
+  badgePill: {
     flexDirection: 'row',
-    backgroundColor: '#F1F5F9',
+    alignItems: 'center',
+    backgroundColor: COLORS.primaryLight,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 9999,
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginBottom: 10,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.primary,
+    letterSpacing: 0.6,
+  },
+  greetingTitle: {
+    fontSize: 27,
+    fontWeight: '800',
+    color: COLORS.text,
+    letterSpacing: -0.5,
+  },
+  greetingSubtitle: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    lineHeight: 19,
+    marginTop: 6,
+  },
+  bentoChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 12,
+    marginBottom: 18,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: COLORS.cardShadow,
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 2,
+    gap: 12,
+  },
+  bentoIconBox: {
+    width: 38,
+    height: 38,
     borderRadius: 10,
+    backgroundColor: COLORS.primaryLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bentoTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  bentoSubtitle: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  bentoArrowBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  formCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: COLORS.cardShadow,
+    shadowOpacity: 0.2,
+    shadowOffset: { width: 0, height: 6 },
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  segmentedToggle: {
+    flexDirection: 'row',
+    backgroundColor: '#EEF3EC',
+    borderRadius: 12,
     padding: 4,
     marginBottom: 18,
   },
-  toggleBtn: {
+  segmentBtn: {
     flex: 1,
-    paddingVertical: 8,
+    paddingVertical: 9,
     alignItems: 'center',
-    borderRadius: 8,
+    borderRadius: 9,
   },
-  toggleBtnActive: {
+  segmentBtnActive: {
     backgroundColor: '#FFFFFF',
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 2,
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
     elevation: 1,
   },
-  toggleText: {
+  segmentText: {
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.textSecondary,
   },
-  toggleTextActive: {
-    color: COLORS.primaryDark,
+  segmentTextActive: {
+    color: COLORS.primary,
     fontWeight: '700',
   },
-  inputGroup: {
+  fieldGroup: {
     marginBottom: 14,
   },
-  label: {
+  fieldLabel: {
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.text,
     marginBottom: 6,
   },
-  inputWrapper: {
+  inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: COLORS.inputBg,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    backgroundColor: '#FAFAFA',
-    height: 46,
-    gap: 8,
+    borderRadius: 12,
+    height: 52,
+    paddingHorizontal: 14,
   },
-  input: {
+  leftIcon: {
+    marginRight: 10,
+  },
+  textInput: {
     flex: 1,
     fontSize: 14,
     color: COLORS.text,
+    fontWeight: '500',
   },
-  btn: {
-    backgroundColor: COLORS.primary,
-    height: 48,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  btnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 15,
-  },
-  guestBtn: {
-    marginTop: 14,
-    alignItems: 'center',
+  rightIconBtn: {
     padding: 6,
   },
-  guestBtnText: {
+  helperRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+    marginBottom: 18,
+  },
+  rememberMeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  rememberMeText: {
+    fontSize: 12,
     color: COLORS.textSecondary,
-    fontSize: 13,
     fontWeight: '500',
+  },
+  forgotPasswordText: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  primaryCtaBtn: {
+    backgroundColor: COLORS.primary, // Deep Forest Green #1B5E20
+    height: 52,
+    borderRadius: 9999, // Pill shape
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.35,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 18,
+    elevation: 4,
+  },
+  ctaContentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  primaryCtaText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  biometricSection: {
+    alignItems: 'center',
+    marginTop: 20,
+    gap: 6,
+  },
+  biometricBtn: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    shadowColor: COLORS.cardShadow,
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  biometricLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    gap: 12,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: COLORS.border,
+  },
+  dividerText: {
+    fontSize: 12,
+    color: COLORS.textMuted,
+    fontWeight: '500',
+  },
+  guestPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 6,
+    shadowColor: COLORS.cardShadow,
+    shadowOpacity: 0.08,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  guestPillText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  footerSection: {
+    alignItems: 'center',
+    marginTop: 24,
+    gap: 10,
+  },
+  streakQuotePill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#EEF3EC',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 9999,
+    gap: 6,
+  },
+  streakQuoteText: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  switchAuthRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  switchAuthPrompt: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  switchAuthAction: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
 });
 

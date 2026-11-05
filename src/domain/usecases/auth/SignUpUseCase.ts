@@ -10,3 +10,4 @@ export class SignUpUseCase {
     return this.authRepo.signUp(email, password, name);
   }
 }
+

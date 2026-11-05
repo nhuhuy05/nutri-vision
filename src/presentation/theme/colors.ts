@@ -1,23 +1,29 @@
 export const COLORS = {
-  primary: '#10B981',       // Fresh Emerald
-  primaryDark: '#059669',
-  primaryLight: '#D1FAE5',
-  secondary: '#3B82F6',     // Blue for water / sync
-  accent: '#F59E0B',        // Amber for carbs / warnings
-  danger: '#EF4444',        // Red for calories limit / errors
-  purple: '#8B5CF6',        // Protein
-  yellow: '#EAB308',        // Fat
+  // Brand Forest & Neon Mint from Figma Design System
+  primary: '#1B5E20',          // Deep Forest Green (Primary CTA)
+  primaryDark: '#00450D',
+  primaryLight: '#E8F5E9',
+  neonMint: '#94F990',         // Vibrant Neon Mint (AI accents, badges)
+  neonMintLight: '#ACF4A4',
+  neonMintGlow: 'rgba(148, 249, 144, 0.6)',
 
-  background: '#F8FAFC',    // Soft light background
+  secondary: '#2563EB',        // Blue for water / sync
+  accent: '#F59E0B',           // Amber
+  danger: '#EF4444',           // Red
+  purple: '#8B5CF6',           // Protein
+  yellow: '#EAB308',           // Fat
+
+  background: '#F5FBF4',       // Figma Canvas Soft Tinted Background
   card: '#FFFFFF',
-  text: '#0F172A',
-  textSecondary: '#64748B',
-  textMuted: '#94A3B8',
-  border: '#E2E8F0',
-  borderLight: '#F1F5F9',
+  cardShadow: 'rgba(27, 94, 32, 0.08)',
+  text: '#171D19',             // Deep Charcoal Forest
+  textSecondary: '#41493E',    // Muted Forest Grey
+  textMuted: '#737C70',
+  border: '#E4EAE3',
+  borderLight: '#EFF5EE',
+  inputBg: '#FAFCF9',
 
-  success: '#10B981',
+  success: '#1B5E20',
   warning: '#F59E0B',
   offline: '#64748B',
 };
-
