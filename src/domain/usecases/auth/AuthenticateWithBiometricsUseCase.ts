@@ -10,3 +10,4 @@ export class AuthenticateWithBiometricsUseCase {
     return this.authRepo.authenticateWithBiometrics();
   }
 }
+

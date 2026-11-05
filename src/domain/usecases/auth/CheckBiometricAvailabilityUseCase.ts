@@ -7,3 +7,4 @@ export class CheckBiometricAvailabilityUseCase {
     return this.authRepo.checkBiometrics();
   }
 }
+

@@ -149,7 +149,26 @@ export function ProfileScreen() {
 
       {/* Target Goals Form */}
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>🎯 Thiết lập mục tiêu hàng ngày</Text>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Text style={styles.sectionTitle}>🎯 Thiết lập mục tiêu hàng ngày</Text>
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: COLORS.primaryLight,
+              paddingHorizontal: 8,
+              paddingVertical: 4,
+              borderRadius: 8,
+              gap: 4,
+            }}
+            onPress={() => router.push('/(auth)/onboarding')}
+          >
+            <Ionicons name="sparkles" size={13} color={COLORS.primary} />
+            <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.primaryDark }}>
+              AI Setup
+            </Text>
+          </TouchableOpacity>
+        </View>
         <Text style={styles.sectionDesc}>
           Cập nhật mục tiêu năng lượng và tỷ lệ dinh dưỡng phù hợp với thể trạng
         </Text>

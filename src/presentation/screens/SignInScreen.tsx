@@ -72,8 +72,18 @@ export function SignInScreen() {
       if (success) {
         Alert.alert(
           'Đăng ký thành công',
-          'Tài khoản và hồ sơ NutriLens của bạn đã được khởi tạo thành công!',
-          [{ text: 'Bắt đầu ngay', onPress: () => router.replace('/(tabs)') }]
+          'Chào mừng bạn đến với NutriLens! Hãy bắt đầu thiết lập chỉ số dinh dưỡng cá nhân nhé.',
+          [
+            {
+              text: 'Thiết lập ngay (3 bước)',
+              onPress: () => router.replace('/(auth)/onboarding'),
+            },
+            {
+              text: 'Để sau (Vào trang chủ)',
+              style: 'cancel',
+              onPress: () => router.replace('/(tabs)'),
+            },
+          ]
         );
       } else {
         Alert.alert('Đăng ký thất bại', error || 'Không thể tạo tài khoản, vui lòng thử lại.');
@@ -350,6 +360,18 @@ export function SignInScreen() {
         <TouchableOpacity style={styles.guestPillBtn} onPress={handleContinueAsGuest}>
           <Text style={styles.guestPillText}>Dùng thử với tư cách khách</Text>
           <Ionicons name="chevron-forward" size={15} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+
+        {/* Action: Personalized Nutrition Profile Setup */}
+        <TouchableOpacity
+          style={styles.onboardingPillBtn}
+          onPress={() => router.push('/(auth)/onboarding')}
+        >
+          <Ionicons name="sparkles" size={15} color={COLORS.primary} />
+          <Text style={styles.onboardingPillText}>
+            Thiết lập mục tiêu dinh dưỡng cá nhân
+          </Text>
+          <Ionicons name="chevron-forward" size={15} color={COLORS.primary} />
         </TouchableOpacity>
 
         {/* Bottom Nutrition Quote Tagline & Footer CTA */}
@@ -683,6 +705,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.textSecondary,
+  },
+  onboardingPillBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F0FDF4',
+    paddingVertical: 12,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: '#DCFCE7',
+    gap: 6,
+    marginTop: 10,
+  },
+  onboardingPillText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.primaryDark,
   },
   footerSection: {
     alignItems: 'center',
