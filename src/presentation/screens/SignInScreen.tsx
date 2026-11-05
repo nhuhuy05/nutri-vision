@@ -527,7 +527,7 @@ const styles = StyleSheet.create({
   },
   segmentedToggle: {
     flexDirection: 'row',
-    backgroundColor: '#EEF3EC',
+    backgroundColor: '#E8F8EC',
     borderRadius: 12,
     padding: 4,
     marginBottom: 18,
@@ -732,7 +732,7 @@ const styles = StyleSheet.create({
   streakQuotePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#EEF3EC',
+    backgroundColor: '#E8F8EC',
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 9999,

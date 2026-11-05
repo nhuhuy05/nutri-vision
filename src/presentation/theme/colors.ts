@@ -1,11 +1,11 @@
 export const COLORS = {
-  // Brand Forest & Neon Mint from Figma Design System
-  primary: '#1B5E20',          // Deep Forest Green (Primary CTA)
-  primaryDark: '#00450D',
-  primaryLight: '#E8F5E9',
-  neonMint: '#94F990',         // Vibrant Neon Mint (AI accents, badges)
-  neonMintLight: '#ACF4A4',
-  neonMintGlow: 'rgba(148, 249, 144, 0.6)',
+  // Vibrant Fresh Green Palette (Tươi sáng, năng động, chuẩn ứng dụng dinh dưỡng hiện đại)
+  primary: '#16A34A',          // Vibrant Leaf Green (Tươi sáng, rõ nét, năng động)
+  primaryDark: '#15803D',      // Deep Emerald Green (Dành cho text nhấn)
+  primaryLight: '#DCFCE7',     // Crisp Mint Tint (Nền badge, thẻ active)
+  neonMint: '#4ADE80',         // Vibrant Neon Mint (AI accents, sparkles)
+  neonMintLight: '#BBF7D0',    // Soft Mint
+  neonMintGlow: 'rgba(74, 222, 128, 0.45)',
 
   secondary: '#2563EB',        // Blue for water / sync
   accent: '#F59E0B',           // Amber
@@ -13,17 +13,17 @@ export const COLORS = {
   purple: '#8B5CF6',           // Protein
   yellow: '#EAB308',           // Fat
 
-  background: '#F5FBF4',       // Figma Canvas Soft Tinted Background
+  background: '#F8FCF8',       // Clean, bright, airy background
   card: '#FFFFFF',
-  cardShadow: 'rgba(27, 94, 32, 0.08)',
-  text: '#171D19',             // Deep Charcoal Forest
-  textSecondary: '#41493E',    // Muted Forest Grey
-  textMuted: '#737C70',
-  border: '#E4EAE3',
-  borderLight: '#EFF5EE',
-  inputBg: '#FAFCF9',
+  cardShadow: 'rgba(22, 163, 74, 0.10)',
+  text: '#111827',             // Sharp charcoal
+  textSecondary: '#4B5563',    // Muted grey
+  textMuted: '#9CA3AF',
+  border: '#E2EFE4',
+  borderLight: '#F0F8F1',
+  inputBg: '#FAFCFA',
 
-  success: '#1B5E20',
+  success: '#16A34A',
   warning: '#F59E0B',
   offline: '#64748B',
 };
