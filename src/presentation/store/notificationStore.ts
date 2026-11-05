@@ -77,3 +77,4 @@ export const useNotificationStore = create<NotificationState>((set, get) => ({
     set({ isToastVisible: false });
   },
 }));
+
