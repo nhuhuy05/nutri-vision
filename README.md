@@ -22,63 +22,78 @@
 | Thành phần | Công nghệ / Thư viện | Vai trò |
 |---|---|---|
 | **Framework** | **React Native (Expo SDK 58)** | Nền tảng di động đa nền tảng tối ưu hiệu năng |
-| **Routing** | **Expo Router v58** | File-based routing với Nested Tabs và Stack Modals |
-| **Local Database** | **Expo SQLite (`expo-sqlite`)** | Lưu trữ danh mục món ăn & nhật ký ngoại tuyến |
-| **State Management**| **Zustand** | Quản lý trạng thái nhật ký, phiên người dùng và mục tiêu |
-| **Data Fetching** | **TanStack Query** | Quản lý cache và truy vấn máy chủ |
+| **Architecture** | **Clean Architecture (3 Layers + DI)** | Kiến trúc sạch phân tách Domain, Data, Presentation, Composition Root |
+| **Routing** | **Expo Router v58** | File-based routing với root `app/` mỏng chỉ re-export |
+| **Local Database** | **Expo SQLite (`expo-sqlite`)** | Lưu trữ danh mục món ăn & nhật ký ngoại tuyến với chế độ WAL |
+| **State Management**| **Zustand** | Quản lý UI state, phiên đăng nhập (auth) và hàng đợi đồng bộ |
+| **Data Fetching** | **TanStack Query** | Quản lý cache và truy vấn máy chủ / repository |
 | **Cloud Backend** | **Supabase** | Xác thực người dùng (Auth) & cơ sở dữ liệu PostgreSQL |
+| **Secure Storage** | **Expo SecureStore** | Lưu trữ session token Supabase đã mã hóa |
 | **AI Engine** | **TensorFlow Lite Interface** | Module phân tích hình ảnh và nhận diện món ăn on-device |
 | **Media / Camera** | **Expo Image Picker** | Chụp ảnh camera & chọn ảnh từ thư viện |
 
 ---
 
-## 📂 Cấu trúc dự án (Architecture)
+## 📂 Cấu trúc dự án (Clean Architecture — Cách A)
 
 ```
 NutriVision/
-├── assets/                    # Icon, splash screen, hình ảnh tài nguyên
-├── src/
-│   ├── app/                   # Expo Router screens (Mọi route định nghĩa tại đây)
-│   │   ├── _layout.tsx        # Root layout, SQLite & QueryClient bootstrapping
-│   │   ├── (tabs)/            # Bottom Tabs Navigation
-│   │   │   ├── _layout.tsx    # Tabs navigator cấu hình 5 màn hình
-│   │   │   ├── index.tsx      # Dashboard: Tổng quan calo, macro, thao tác nhanh
-│   │   │   ├── diary.tsx      # Nhật ký bữa ăn (Sáng / Trưa / Tối / Phụ)
-│   │   │   ├── scan.tsx       # Quét AI món ăn qua Camera & Thư viện
-│   │   │   ├── reports.tsx    # Báo cáo xu hướng dinh dưỡng theo ngày & tuần
-│   │   │   └── profile.tsx    # Hồ sơ người dùng, thiết lập mục tiêu & đồng bộ
-│   │   └── modal/             # Modal routes
-│   │       ├── food-review.tsx# Xác nhận món ăn, điều chỉnh khẩu phần & dinh dưỡng
-│   │       └── manual-entry.tsx# Tra cứu & thêm món thủ công từ danh mục SQLite
-│   ├── components/            # UI components tái sử dụng
-│   │   ├── MacroBar.tsx       # Thanh tiến độ Macro (Calo, Đạm, Tinh bột, Béo)
-│   │   ├── MealSection.tsx    # Nhóm bữa ăn với tính năng thêm/xoá món
-│   │   └── OfflineBanner.tsx  # Cảnh báo ngoại tuyến & trạng thái đồng bộ
-│   ├── constants/             # Hằng số hệ thống
-│   │   ├── theme.ts           # Bảng màu chủ đạo & mục tiêu mặc định
-│   │   └── vietnameseFoods.ts # Danh mục món ăn Việt Nam chuẩn calo & macro
-│   ├── services/              # Tầng nghiệp vụ & tích hợp dịch vụ
-│   │   ├── database.ts        # SQLite wrapper (bảng foods, meal_logs, sync_queue)
-│   │   ├── ai.ts              # AI food recognition engine (TFLite wrapper)
-│   │   ├── network.ts         # Giám sát trạng thái kết nối mạng (Expo Network)
-│   │   ├── supabase.ts        # Supabase client tích hợp AsyncStorage
-│   │   └── sync.ts            # Cơ chế đồng bộ dữ liệu Offline-First
-│   ├── store/                 # Zustand Stores
-│   │   ├── authStore.ts       # Trạng thái đăng nhập & hồ sơ
-│   │   ├── goalStore.ts       # Mục tiêu dinh dưỡng cá nhân
-│   │   └── mealStore.ts       # Quản lý nhật ký bữa ăn & hàng đợi đồng bộ
-│   └── types/                 # Định nghĩa TypeScript
-│       └── nutrition.ts       # Interface: FoodItem, MealLog, DailyGoals, v.v.
-├── app.json                   # Cấu hình Expo và native plugins
-├── package.json               # Danh sách thư viện và scripts
-└── tsconfig.json              # Cấu hình TypeScript với path alias `@/*`
+├── app/                                       # 📱 Expo Router Shell (CHỈ re-export)
+│   ├── _layout.tsx                            # Root Providers (QueryClient, DB, StatusBar)
+│   ├── (tabs)/
+│   │   ├── _layout.tsx                        # Bottom Tabs Navigator 5 màn hình
+│   │   ├── index.tsx                          # -> DashboardScreen
+│   │   ├── diary.tsx                          # -> DiaryScreen
+│   │   ├── scan.tsx                           # -> ScanScreen
+│   │   ├── reports.tsx                        # -> ReportsScreen
+│   │   └── profile.tsx                        # -> ProfileScreen
+│   ├── (auth)/
+│   │   └── sign-in.tsx                        # -> SignInScreen
+│   └── modal/
+│       ├── food-review.tsx                    # -> FoodReviewScreen
+│       └── manual-entry.tsx                   # -> ManualEntryScreen
+│
+├── docs/
+│   ├── architecture.md                        # Đặc tả kiến trúc Clean Architecture
+│   ├── overview.md                            # Tổng quan và mục tiêu dự án
+│   └── standard.md                            # 5 tiêu chuẩn Capstone VKU
+│
+└── src/
+    ├── domain/                                # 🟢 ZERO DEPENDENCY (Pure TypeScript)
+    │   ├── common/ (Result.ts, Failure.ts)
+    │   ├── constants/ (defaultGoals.ts)
+    │   ├── entities/ (FoodItem, MealLog, DailyGoals, DailySummary, Session, ...)
+    │   ├── repositories/ (IFoodRepository, IMealLogRepository, IGoalRepository, ...)
+    │   ├── services/ (NutritionCalculator.ts, ReportAggregator.ts)
+    │   └── usecases/ (food, meal, summary, report, recognition, goals, auth, sync)
+    │
+    ├── data/                                  # 🔵 DATA IMPLEMENTATION
+    │   ├── datasources/
+    │   │   ├── local/ (db/connection, db/migrations, *LocalDataSource, seed/)
+    │   │   ├── remote/ (supabaseClient, *RemoteDataSource)
+    │   │   └── ai/ (TFLiteClassifier, ImagePreprocessor, labels.vi.json)
+    │   ├── dto/ (FoodDTO, MealLogDTO, GoalDTO, RemoteMealLogDTO)
+    │   ├── mappers/ (FoodMapper, MealLogMapper, GoalMapper, RecognitionMapper)
+    │   ├── infrastructure/ (NetworkInfo, SecureSessionStorage, ErrorMapper)
+    │   └── repositories/ (*RepositoryImpl trả về Result<T, Failure>)
+    │
+    ├── presentation/                          # 🟠 UI & STATE MANAGEMENT
+    │   ├── screens/ (DashboardScreen, DiaryScreen, ScanScreen, ...)
+    │   ├── components/ (MacroBar, MealSection, OfflineBanner)
+    │   ├── hooks/ (useDiary, useDailySummary, useWeeklyReport, useSync, useRecognize)
+    │   ├── store/ (uiStore, authStore, syncStore, goalStore)
+    │   ├── theme/ (colors, spacing, typography)
+    │   └── query/ (queryClient, queryKeys)
+    │
+    └── di/                                    # 🧩 COMPOSITION ROOT
+        └── container.ts                       # Nằm ngoài 3 lớp, ráp nối DataSource -> Repo -> UseCase
 ```
 
 ---
 
 ## 🚀 Hướng dẫn khởi chạy
 
-### 1. Cài đặt các gói phụ thuộc (nếu chưa cài):
+### 1. Cài đặt các gói phụ thuộc:
 ```bash
 npm install
 ```
@@ -91,8 +106,9 @@ npx expo start
 - Nhấn `i` để mở trên iOS Simulator (yêu cầu macOS).
 - Hoặc quét mã QR bằng ứng dụng **Expo Go** trên điện thoại.
 
-### 3. Kiểm tra mã nguồn (Typecheck & Doctor):
+### 3. Kiểm tra chất lượng mã nguồn:
 ```bash
 npx tsc --noEmit        # Kiểm tra kiểu dữ liệu TypeScript (0 errors)
-npx expo-doctor         # Chẩn đoán tính toàn vẹn và tương thích cấu hình Expo (20/20 checks passed)
+npm run lint            # Kiểm tra quy chuẩn mã nguồn ESLint (0 errors, 0 warnings)
+npx expo-doctor         # Chẩn đoán tương thích hệ sinh thái Expo (20/20 checks passed)
 ```
