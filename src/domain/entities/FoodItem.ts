@@ -1,5 +1,3 @@
-export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
-
 export interface FoodItem {
   id: string;
   name: string;
@@ -13,4 +11,3 @@ export interface FoodItem {
   servingWeightGrams: number;
   imageUrl?: string;
 }
-

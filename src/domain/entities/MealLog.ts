@@ -1,4 +1,4 @@
-import { MealType } from './FoodItem';
+import { MealType } from './MealType';
 
 export interface MealLog {
   id: string;             // UUID
@@ -14,6 +14,6 @@ export interface MealLog {
   fat: number;
   photoUri?: string;
   createdAt: string;
+  updatedAt?: string;
   synced: boolean;
 }
-

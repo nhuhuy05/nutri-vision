@@ -1,12 +1,18 @@
 import { create } from 'zustand';
 import { UserProfile } from '../../domain/entities/UserProfile';
+import {
+  signInUseCase,
+  signOutUseCase,
+  getCurrentSessionUseCase,
+} from '../../di/container';
 
 interface AuthState {
   user: UserProfile | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (email: string) => Promise<void>;
-  register: (email: string, name: string) => Promise<void>;
+  error: string | null;
+  checkSession: () => Promise<void>;
+  login: (email: string) => Promise<boolean>;
   logout: () => Promise<void>;
 }
 
@@ -18,31 +24,48 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
   isAuthenticated: true,
   isLoading: false,
+  error: null,
 
-  login: async (email: string) => {
-    set({ isLoading: true });
-    setTimeout(() => {
+  checkSession: async () => {
+    set({ isLoading: true, error: null });
+    const result = await getCurrentSessionUseCase.execute();
+    if (result.success && result.data) {
       set({
-        user: { id: 'user_minh_nhat_01', email, name: email.split('@')[0] },
+        user: result.data.user,
         isAuthenticated: true,
         isLoading: false,
       });
-    }, 400);
+    } else {
+      set({ isLoading: false });
+    }
   },
 
-  register: async (email: string, name: string) => {
-    set({ isLoading: true });
-    setTimeout(() => {
+  login: async (email: string) => {
+    set({ isLoading: true, error: null });
+    const result = await signInUseCase.execute(email);
+    if (result.success) {
       set({
-        user: { id: 'user_' + Date.now(), email, name },
+        user: result.data.user,
         isAuthenticated: true,
         isLoading: false,
       });
-    }, 400);
+      return true;
+    } else {
+      set({
+        isLoading: false,
+        error: result.error.message,
+      });
+      return false;
+    }
   },
 
   logout: async () => {
-    set({ user: null, isAuthenticated: false });
+    set({ isLoading: true });
+    await signOutUseCase.execute();
+    set({
+      user: null,
+      isAuthenticated: false,
+      isLoading: false,
+    });
   },
 }));
-

@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { COLORS } from '../../core/theme';
-import { useMealStore } from '../store/mealStore';
+import { COLORS } from '../theme';
+import { useSync } from '../hooks/useSync';
 
 export const OfflineBanner: React.FC = () => {
-  const { isOnline, pendingSyncCount, isSyncing, syncData } = useMealStore();
+  const { isOnline, pendingCount, isSyncing, syncNow } = useSync();
 
-  if (isOnline && pendingSyncCount === 0) {
+  if (isOnline && pendingCount === 0) {
     return null;
   }
 
@@ -26,14 +26,14 @@ export const OfflineBanner: React.FC = () => {
         />
         <Text style={styles.text}>
           {!isOnline
-            ? `Ngoại tuyến (${pendingSyncCount} bản ghi chờ đồng bộ)`
-            : `${pendingSyncCount} bản ghi chưa đồng bộ lên máy chủ`}
+            ? `Ngoại tuyến (${pendingCount} bản ghi chờ đồng bộ)`
+            : `${pendingCount} bản ghi chưa đồng bộ lên máy chủ`}
         </Text>
       </View>
 
-      {isOnline && pendingSyncCount > 0 && (
+      {isOnline && pendingCount > 0 && (
         <TouchableOpacity
-          onPress={syncData}
+          onPress={syncNow}
           disabled={isSyncing}
           style={styles.syncBtn}
         >
@@ -51,19 +51,23 @@ export const OfflineBanner: React.FC = () => {
 const styles = StyleSheet.create({
   banner: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     marginHorizontal: 16,
-    marginTop: 8,
+    marginTop: 10,
     borderRadius: 8,
   },
   bannerOffline: {
     backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
   },
   bannerPending: {
-    backgroundColor: '#DBEAFE',
+    backgroundColor: '#EFF6FF',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
   },
   left: {
     flexDirection: 'row',
@@ -73,19 +77,19 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 12,
-    fontWeight: '500',
     color: COLORS.text,
+    fontWeight: '500',
+    flex: 1,
   },
   syncBtn: {
-    backgroundColor: '#2563EB',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    backgroundColor: COLORS.secondary,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 6,
   },
   syncBtnText: {
     color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
+    fontWeight: '700',
   },
 });
-

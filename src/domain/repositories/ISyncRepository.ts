@@ -1,13 +1,14 @@
 import { MealLog } from '../entities/MealLog';
+import { Result } from '../common/Result';
+import { Failure } from '../common/Failure';
 
-export interface SyncResult {
-  success: boolean;
+export interface SyncStats {
   syncedCount: number;
   pendingCount: number;
-  error?: string;
 }
 
 export interface ISyncRepository {
-  syncLogs(pendingLogs: MealLog[]): Promise<SyncResult>;
+  syncPendingMealLogs(pending: MealLog[]): Promise<Result<SyncStats, Failure>>;
+  pullRemoteChanges(userId: string): Promise<Result<MealLog[], Failure>>;
+  getPendingCount(): Promise<Result<number, Failure>>;
 }
-
