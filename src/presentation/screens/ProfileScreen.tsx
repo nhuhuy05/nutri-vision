@@ -219,6 +219,48 @@ export function ProfileScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Exploration & Onboarding */}
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>✨ Giới thiệu & Trợ giúp</Text>
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: 12,
+            borderBottomWidth: 1,
+            borderBottomColor: COLORS.borderLight,
+          }}
+          onPress={() => router.push('/(auth)/welcome')}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Ionicons name="sparkles" size={18} color={COLORS.primary} />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.text }}>
+              Xem lại giới thiệu NutriLens AI (3 slide)
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingTop: 12,
+          }}
+          onPress={() => router.push('/(auth)/onboarding')}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+            <Ionicons name="calculator-outline" size={18} color={COLORS.primary} />
+            <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.text }}>
+              Thiết lập lại thể trạng & Mục tiêu (Mifflin-St Jeor)
+            </Text>
+          </View>
+          <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
       {/* System & Offline Status */}
       <View style={styles.card}>
         <Text style={styles.sectionTitle}>⚙️ Trạng thái đồng bộ & Bộ nhớ</Text>

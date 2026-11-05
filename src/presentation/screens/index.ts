@@ -7,4 +7,4 @@ export * from './SignInScreen';
 export * from './FoodReviewScreen';
 export * from './ManualEntryScreen';
 export * from './OnboardingScreen';
-
+export * from './OnboardingIntroScreen';
