@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,6 +13,7 @@ import { useUIStore } from '../store';
 import { useDiary } from '../hooks/useDiary';
 import { MealSection, OfflineBanner } from '../components';
 import { MealType } from '../../domain/entities/MealType';
+import { notify } from '../utils/notify';
 
 export function DiaryScreen() {
   const { selectedDate, setSelectedDate } = useUIStore();
@@ -36,14 +36,17 @@ export function DiaryScreen() {
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert('Xoá món ăn', 'Bạn có chắc chắn muốn xoá món này khỏi nhật ký?', [
-      { text: 'Huỷ', style: 'cancel' },
-      {
-        text: 'Xoá',
-        style: 'destructive',
-        onPress: () => deleteMeal(id),
+    notify.confirm(
+      'Xoá món ăn',
+      'Bạn có chắc chắn muốn xoá món này khỏi nhật ký hôm nay?',
+      () => {
+        deleteMeal(id);
+        notify.toast('Đã xoá món ăn khỏi nhật ký');
       },
-    ]);
+      undefined,
+      'Xoá',
+      'Huỷ'
+    );
   };
 
   const handleAddMeal = (mealType: MealType) => {
@@ -175,7 +178,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: 110,
   },
 });
 

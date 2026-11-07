@@ -34,7 +34,7 @@
 
 ---
 
-## 📂 Cấu trúc dự án (Clean Architecture — Cách A)
+## 📂 Cấu trúc dự án (Clean Architecture)
 
 ```
 NutriVision/
