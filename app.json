@@ -8,10 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true,
-      "infoPlist": {
-        "NSFaceIDUsageDescription": "NutriVision cần quyền truy cập Face ID để đăng nhập nhanh chóng và bảo mật."
-      }
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
@@ -30,13 +27,7 @@
       "expo-status-bar",
       "expo-sqlite",
       "expo-font",
-      "expo-secure-store",
-      [
-        "expo-local-authentication",
-        {
-          "faceIDPermission": "NutriVision cần quyền truy cập Face ID để đăng nhập nhanh chóng và bảo mật."
-        }
-      ]
+      "expo-secure-store"
     ]
   }
 }

@@ -10,6 +10,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
@@ -25,41 +26,34 @@ export function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [hasCompletedSetup, setHasCompletedSetup] = useState(false);
 
   const {
     login,
     register,
     resetPassword,
-    loginWithBiometrics,
-    checkBiometrics,
-    isBiometricAvailable,
-    hasBiometricKey,
-    biometryType,
+    loadSavedEmail,
     isLoading,
     error,
   } = useAuthStore();
 
   useEffect(() => {
-    const initAuthScreen = async () => {
-      await checkBiometrics();
+    const initScreen = async () => {
+      await loadSavedEmail();
       const saved = useAuthStore.getState().savedEmail;
       if (saved) {
         setEmail((prev) => prev || saved);
       }
+
+      try {
+        const setupDone = await AsyncStorage.getItem('@nutrivision_has_completed_setup');
+        setHasCompletedSetup(setupDone === 'true');
+      } catch {
+        setHasCompletedSetup(false);
+      }
     };
-    initAuthScreen();
-  }, [checkBiometrics]);
-
-  const getBiometricTitle = () => {
-    if (biometryType === 'FINGERPRINT') return 'Vân tay (Touch ID)';
-    if (biometryType === 'FACE_ID') return 'Face ID';
-    return 'Face ID / Sinh trắc học';
-  };
-
-  const getBiometricIcon = (): keyof typeof Ionicons.glyphMap => {
-    if (biometryType === 'FINGERPRINT') return 'finger-print-outline';
-    return 'scan-outline';
-  };
+    initScreen();
+  }, [loadSavedEmail]);
 
   const handleSubmit = async () => {
     const cleanEmail = email.trim();
@@ -75,7 +69,7 @@ export function SignInScreen() {
 
     if (isSignUpMode) {
       if (!name.trim()) {
-        notify.warning('Thiếu họ tên', 'Vui lòng nhập họ và tên của bạn để cá nhân hóa tài khoản.');
+        notify.warning('Thiếu họ tên', 'Vui lòng nhập họ và tên của bạn để tạo tài khoản.');
         return;
       }
 
@@ -88,7 +82,7 @@ export function SignInScreen() {
       if (success) {
         notify.confirm(
           'Đăng ký thành công! 🎉',
-          'Chào mừng bạn đến với NutriLens! Hãy cùng thiết lập chỉ số dinh dưỡng cá nhân nhé.',
+          'Chào mừng bạn đến với NutriVision! Hãy cùng thiết lập chỉ số dinh dưỡng cá nhân nhé.',
           () => router.replace('/(auth)/onboarding'),
           () => router.replace('/(tabs)'),
           'Thiết lập ngay',
@@ -103,7 +97,7 @@ export function SignInScreen() {
     } else {
       const success = await login(cleanEmail, password, rememberMe);
       if (success) {
-        notify.toast('Chào mừng bạn quay trở lại NutriLens!');
+        notify.toast('Chào mừng bạn quay trở lại NutriVision!');
         router.replace('/(tabs)');
       } else {
         notify.error(
@@ -119,7 +113,7 @@ export function SignInScreen() {
     if (!cleanEmail || !cleanEmail.includes('@')) {
       notify.warning(
         'Nhập email',
-        'Vui lòng điền địa chỉ email của bạn vào ô bên trên để NutriLens gửi liên kết đặt lại mật khẩu.'
+        'Vui lòng điền địa chỉ email của bạn vào ô bên trên để NutriVision gửi liên kết đặt lại mật khẩu.'
       );
       return;
     }
@@ -144,45 +138,17 @@ export function SignInScreen() {
     );
   };
 
-  const handleContinueAsGuest = () => {
-    router.replace('/(tabs)');
-  };
-
-  const handleBiometricPress = async () => {
-    if (!hasBiometricKey) {
-      notify.info(
-        'Kích hoạt ' + getBiometricTitle(),
-        'Bạn hãy đăng nhập bằng Email và Mật khẩu lần đầu tiên và bật "Ghi nhớ đăng nhập" để kích hoạt ' +
-          getBiometricTitle() +
-          ' cho các lần mở app sau nhé!'
-      );
-      return;
-    }
-
-    const success = await loginWithBiometrics();
-    if (success) {
-      notify.toast('Đăng nhập sinh trắc học thành công! 🎉');
-      router.replace('/(tabs)');
-    } else {
-      const authErr = useAuthStore.getState().error;
-      notify.error(
-        'Xác thực ' + getBiometricTitle(),
-        authErr || 'Xác thực sinh trắc học không thành công. Vui lòng đăng nhập bằng Email và Mật khẩu.'
-      );
-    }
-  };
-
   const handleShowTerms = () => {
     notify.info(
       'Điều khoản dịch vụ',
-      'NutriLens cung cấp công cụ tính toán calo và dinh dưỡng dựa trên ảnh chụp AI nhằm mục đích tham khảo và hỗ trợ lối sống lành mạnh. Ứng dụng không thay thế chẩn đoán y khoa chuyên nghiệp.'
+      'NutriVision cung cấp công cụ tính toán calo và dinh dưỡng dựa trên ảnh chụp AI nhằm mục đích tham khảo và hỗ trợ lối sống lành mạnh. Ứng dụng không thay thế chẩn đoán y khoa chuyên nghiệp.'
     );
   };
 
   const handleShowPrivacy = () => {
     notify.info(
       'Chính sách bảo mật',
-      'NutriLens cam kết bảo mật 100% hình ảnh bữa ăn và chỉ số sinh học cá nhân của bạn, không chia sẻ cho bên thứ ba vì mục đích thương mại.'
+      'NutriVision cam kết bảo mật 100% hình ảnh bữa ăn và chỉ số sinh học cá nhân của bạn, không chia sẻ cho bên thứ ba vì mục đích thương mại.'
     );
   };
 
@@ -193,15 +159,7 @@ export function SignInScreen() {
     >
       {/* Top Navigation Bar */}
       <View style={styles.topBar}>
-        <TouchableOpacity
-          style={styles.circleBtn}
-          onPress={() => {
-            if (router.canGoBack()) router.back();
-            else router.replace('/(tabs)');
-          }}
-        >
-          <Ionicons name="chevron-back" size={20} color={COLORS.text} />
-        </TouchableOpacity>
+        <View style={styles.topBarSpacer} />
 
         <Text style={styles.topBarTitle}>
           {isSignUpMode ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập'}
@@ -209,10 +167,12 @@ export function SignInScreen() {
 
         <TouchableOpacity
           style={styles.circleBtn}
+          accessibilityRole="button"
+          accessibilityLabel="Trợ giúp NutriVision"
           onPress={() =>
             notify.info(
-              'Trợ giúp NutriLens',
-              'Nếu bạn gặp sự cố đăng nhập hoặc cần hỗ trợ tài khoản, vui lòng liên hệ đội ngũ cố vấn: support@nutrilens.app'
+              'Trợ giúp NutriVision',
+              'Nếu bạn gặp sự cố đăng nhập hoặc cần hỗ trợ tài khoản, vui lòng liên hệ đội ngũ cố vấn: support@nutrivision.app'
             )
           }
         >
@@ -233,53 +193,34 @@ export function SignInScreen() {
           </View>
 
           <Text style={styles.greetingTitle}>
-            {isSignUpMode ? 'Khởi đầu bữa ăn mới! 🌱' : 'Chào mừng trở lại! 👋'}
+            {isSignUpMode ? 'Tạo tài khoản mới 🌱' : 'Chào mừng trở lại! 👋'}
           </Text>
 
           <Text style={styles.greetingSubtitle}>
             {isSignUpMode
-              ? 'Tạo tài khoản để cá nhân hóa khẩu phần ăn và nhận gợi ý thực đơn thông minh.'
-              : 'Nhập thông tin tài khoản NutriLens của bạn để tiếp tục theo dõi thực đơn lành mạnh mỗi ngày.'}
+              ? 'Đăng ký để cá nhân hoá thực đơn và theo dõi dinh dưỡng thông minh.'
+              : 'Nhập thông tin tài khoản NutriVision của bạn để tiếp tục theo dõi thực đơn lành mạnh mỗi ngày.'}
           </Text>
         </View>
 
-        {/* Ambient Visual Bento Insight Chip */}
-        <View style={styles.bentoChip}>
-          <View style={styles.bentoIconBox}>
-            <Ionicons name="book-outline" size={20} color={COLORS.primary} />
+        {/* Ambient Visual Bento Insight Chip with Checkmark Badge (Sign In Only) */}
+        {!isSignUpMode && (
+          <View style={styles.bentoChip}>
+            <View style={styles.bentoIconBox}>
+              <Ionicons name="book-outline" size={20} color={COLORS.primary} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.bentoTitle}>Thực đơn cá nhân hoá</Text>
+              <Text style={styles.bentoSubtitle}>Hơn 1,200 món ăn Việt chuẩn calo</Text>
+            </View>
+            <View style={styles.bentoBadgeBox}>
+              <Ionicons name="checkmark-circle" size={22} color={COLORS.primary} />
+            </View>
           </View>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.bentoTitle}>Thực đơn cá nhân hoá</Text>
-            <Text style={styles.bentoSubtitle}>Hơn 1,200 món ăn Việt chuẩn calo</Text>
-          </View>
-          <View style={styles.bentoArrowBox}>
-            <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
-          </View>
-        </View>
+        )}
 
         {/* Form Card */}
         <View style={styles.formCard}>
-          {/* Segmented Mode Toggle */}
-          <View style={styles.segmentedToggle}>
-            <TouchableOpacity
-              style={[styles.segmentBtn, !isSignUpMode && styles.segmentBtnActive]}
-              onPress={() => setIsSignUpMode(false)}
-            >
-              <Text style={[styles.segmentText, !isSignUpMode && styles.segmentTextActive]}>
-                Đăng nhập
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.segmentBtn, isSignUpMode && styles.segmentBtnActive]}
-              onPress={() => setIsSignUpMode(true)}
-            >
-              <Text style={[styles.segmentText, isSignUpMode && styles.segmentTextActive]}>
-                Đăng ký mới
-              </Text>
-            </TouchableOpacity>
-          </View>
-
           {/* Full Name Field (Sign Up Only) */}
           {isSignUpMode && (
             <View style={styles.fieldGroup}>
@@ -420,23 +361,6 @@ export function SignInScreen() {
             </View>
           )}
 
-          {/* Terms & Privacy Note (Sign Up Only) */}
-          {isSignUpMode && (
-            <View style={styles.termsBox}>
-              <Text style={styles.termsText}>
-                Bằng việc tạo tài khoản, bạn đồng ý với{' '}
-                <Text style={styles.termsLink} onPress={handleShowTerms}>
-                  Điều khoản dịch vụ
-                </Text>{' '}
-                và{' '}
-                <Text style={styles.termsLink} onPress={handleShowPrivacy}>
-                  Chính sách bảo mật
-                </Text>{' '}
-                của NutriLens.
-              </Text>
-            </View>
-          )}
-
           {/* Primary Action CTA Button */}
           <TouchableOpacity
             style={[styles.primaryCtaBtn, isLoading && { opacity: 0.75 }]}
@@ -448,64 +372,60 @@ export function SignInScreen() {
             ) : (
               <View style={styles.ctaContentRow}>
                 <Text style={styles.primaryCtaText}>
-                  {isSignUpMode ? 'Tạo Tài Khoản Mới' : 'Đăng Nhập'}
+                  {isSignUpMode ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập'}
                 </Text>
                 <Ionicons name="arrow-forward" size={18} color="#FFFFFF" />
               </View>
             )}
           </TouchableOpacity>
+
+          {/* Terms & Privacy Note (Sign Up Only) */}
+          {isSignUpMode && (
+            <View style={styles.termsBox}>
+              <Text style={styles.termsText}>
+                Bằng việc đăng ký, bạn đồng ý với{' '}
+                <Text style={styles.termsLink} onPress={handleShowTerms}>
+                  Điều khoản dịch vụ
+                </Text>
+                {' & '}
+                <Text style={styles.termsLink} onPress={handleShowPrivacy}>
+                  Chính sách bảo mật
+                </Text>
+                {' của NutriVision.'}
+              </Text>
+            </View>
+          )}
+
+          {/* Quick Setup Action: visible if user has NOT completed setup before */}
+          {!hasCompletedSetup && (
+            <>
+              <View style={styles.dividerRow}>
+                <View style={styles.dividerLine} />
+                <Text style={styles.dividerText}>hoặc</Text>
+                <View style={styles.dividerLine} />
+              </View>
+
+              <TouchableOpacity
+                style={styles.quickSetupBtn}
+                onPress={() => router.push('/(auth)/onboarding')}
+              >
+                <Text style={styles.quickSetupText}>Thiết lập nhanh</Text>
+                <Ionicons name="chevron-forward" size={18} color={COLORS.primaryDark} />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
 
-        {/* Biometric Face ID Authentication Section (Sign In Only) */}
-        {!isSignUpMode && isBiometricAvailable && (
-          <View style={styles.biometricSection}>
-            <TouchableOpacity
-              style={[styles.biometricBtn, !hasBiometricKey && styles.biometricBtnUnlinked]}
-              onPress={handleBiometricPress}
-              disabled={isLoading}
-              activeOpacity={0.8}
-            >
-              <Ionicons
-                name={getBiometricIcon()}
-                size={26}
-                color={hasBiometricKey ? COLORS.primary : COLORS.textMuted}
-              />
-            </TouchableOpacity>
-            <Text style={styles.biometricLabel}>
-              {hasBiometricKey
-                ? `Đăng nhập nhanh bằng ${getBiometricTitle()}`
-                : `Liên kết ${getBiometricTitle()} cho lần đăng nhập sau`}
-            </Text>
-          </View>
-        )}
-
-        {/* Elegant Divider */}
-        <View style={styles.dividerRow}>
-          <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>hoặc</Text>
-          <View style={styles.dividerLine} />
-        </View>
-
-        {/* Secondary Action: Explore as Guest */}
-        <TouchableOpacity style={styles.guestPillBtn} onPress={handleContinueAsGuest}>
-          <Text style={styles.guestPillText}>Dùng thử với tư cách khách</Text>
-          <Ionicons name="chevron-forward" size={15} color={COLORS.textSecondary} />
-        </TouchableOpacity>
-
-        {/* Bottom Nutrition Quote Tagline & Footer Mode Switcher */}
+        {/* Bottom Switch Auth: ALWAYS AT THE VERY BOTTOM */}
         <View style={styles.footerSection}>
-          <View style={styles.streakQuotePill}>
-            <Ionicons name="heart" size={13} color={COLORS.primary} />
-            <Text style={styles.streakQuoteText}>
-              Đồng hành cùng 50,000+ bữa ăn lành mạnh
-            </Text>
-          </View>
-
           <View style={styles.switchAuthRow}>
             <Text style={styles.switchAuthPrompt}>
-              {isSignUpMode ? 'Đã có tài khoản NutriLens? ' : 'Chưa có tài khoản? '}
+              {isSignUpMode ? 'Đã có tài khoản? ' : 'Chưa có tài khoản? '}
             </Text>
-            <TouchableOpacity onPress={() => setIsSignUpMode(!isSignUpMode)}>
+            <TouchableOpacity
+              onPress={() => setIsSignUpMode(!isSignUpMode)}
+              hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+            >
               <Text style={styles.switchAuthAction}>
                 {isSignUpMode ? 'Đăng nhập ngay' : 'Đăng ký ngay'}
               </Text>
@@ -531,6 +451,9 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     backgroundColor: COLORS.background,
   },
+  topBarSpacer: {
+    width: 38,
+  },
   circleBtn: {
     width: 38,
     height: 38,
@@ -552,9 +475,10 @@ const styles = StyleSheet.create({
     color: COLORS.text,
   },
   scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 40,
+    paddingBottom: Platform.OS === 'ios' ? 34 : 24,
   },
   greetingBlock: {
     marginBottom: 16,
@@ -622,11 +546,11 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     marginTop: 2,
   },
-  bentoArrowBox: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: COLORS.background,
+  bentoBadgeBox: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: COLORS.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -641,36 +565,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     shadowRadius: 16,
     elevation: 3,
-  },
-  segmentedToggle: {
-    flexDirection: 'row',
-    backgroundColor: '#E8F8EC',
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 18,
-  },
-  segmentBtn: {
-    flex: 1,
-    paddingVertical: 9,
-    alignItems: 'center',
-    borderRadius: 9,
-  },
-  segmentBtnActive: {
-    backgroundColor: '#FFFFFF',
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  segmentText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-  },
-  segmentTextActive: {
-    color: COLORS.primary,
-    fontWeight: '700',
   },
   fieldGroup: {
     marginBottom: 14,
@@ -740,19 +634,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   termsBox: {
-    marginBottom: 16,
-    marginTop: 4,
-    paddingHorizontal: 4,
+    marginTop: 20,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   termsText: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    lineHeight: 18,
+    fontSize: 11.5,
+    color: COLORS.textMuted,
+    lineHeight: 17,
     textAlign: 'center',
   },
   termsLink: {
-    color: COLORS.primary,
-    fontWeight: '700',
+    color: COLORS.primaryDark,
+    fontWeight: '600',
     textDecorationLine: 'underline',
   },
   primaryCtaBtn: {
@@ -778,39 +673,24 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.2,
   },
-  biometricSection: {
+  switchAuthRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
-    gap: 6,
-  },
-  biometricBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    shadowColor: COLORS.cardShadow,
-    shadowOpacity: 0.15,
-    shadowOffset: { width: 0, height: 3 },
-    shadowRadius: 6,
-    elevation: 2,
   },
-  biometricBtnUnlinked: {
-    opacity: 0.65,
-    borderColor: COLORS.borderLight,
-  },
-  biometricLabel: {
-    fontSize: 12,
+  switchAuthPrompt: {
+    fontSize: 14,
     color: COLORS.textSecondary,
-    fontWeight: '500',
+  },
+  switchAuthAction: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   dividerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 20,
+    marginVertical: 14,
     gap: 12,
   },
   dividerLine: {
@@ -823,58 +703,34 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontWeight: '500',
   },
-  guestPillBtn: {
+  quickSetupBtn: {
+    height: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 12,
+    backgroundColor: '#F0FDF4',
     borderRadius: 9999,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    gap: 6,
+    borderWidth: 1.5,
+    borderColor: '#BBF7D0',
+    gap: 8,
     shadowColor: COLORS.cardShadow,
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 1,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  guestPillText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
+  quickSetupText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.primaryDark,
+    letterSpacing: 0.2,
   },
   footerSection: {
+    marginTop: 'auto',
+    paddingTop: 24,
+    paddingBottom: 8,
     alignItems: 'center',
-    marginTop: 24,
-    gap: 10,
-  },
-  streakQuotePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#E8F8EC',
-    paddingHorizontal: 12,
-    paddingVertical: 5,
-    borderRadius: 9999,
-    gap: 6,
-  },
-  streakQuoteText: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    fontWeight: '500',
-  },
-  switchAuthRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  switchAuthPrompt: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
-  switchAuthAction: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.primary,
+    justifyContent: 'center',
   },
 });
 

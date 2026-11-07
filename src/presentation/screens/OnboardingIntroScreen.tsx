@@ -107,7 +107,7 @@ export function OnboardingIntroScreen() {
               <Ionicons name="leaf" size={16} color={COLORS.primary} />
             </View>
             <Text style={styles.logoText}>
-              Nutri<Text style={{ color: COLORS.primary }}>Lens</Text>
+              Nutri<Text style={{ color: COLORS.primary }}>Vision</Text>
             </Text>
           </View>
         )}
@@ -118,7 +118,7 @@ export function OnboardingIntroScreen() {
               <Ionicons name="leaf" size={16} color={COLORS.primary} />
             </View>
             <Text style={styles.logoText}>
-              Nutri<Text style={{ color: COLORS.primary }}>Lens</Text>
+              Nutri<Text style={{ color: COLORS.primary }}>Vision</Text>
             </Text>
           </View>
         )}
@@ -221,7 +221,7 @@ export function OnboardingIntroScreen() {
 
             {/* Subtext */}
             <Text style={styles.subtext}>
-              NutriLens được huấn luyện chuyên sâu với hơn{' '}
+              NutriVision được huấn luyện chuyên sâu với hơn{' '}
               <Text style={{ fontWeight: '700', color: COLORS.primaryDark }}>
                 5.000+ món ăn truyền thống & đường phố Việt Nam
               </Text>
@@ -349,7 +349,7 @@ export function OnboardingIntroScreen() {
 
             {/* Subtext */}
             <Text style={styles.subtext}>
-              Không chỉ đếm calo thuần túy, NutriLens cân bằng tối ưu tỷ lệ chất đạm, tinh bột và chất béo phù hợp với thể trạng riêng của bạn.
+              Không chỉ đếm calo thuần túy, NutriVision cân bằng tối ưu tỷ lệ chất đạm, tinh bột và chất béo phù hợp với thể trạng riêng của bạn.
             </Text>
 
             {/* Hero Visual Card: Macro Target Dashboard Preview */}
@@ -409,7 +409,7 @@ export function OnboardingIntroScreen() {
               <View style={styles.aiAdviceBox}>
                 <View style={styles.aiAdviceHeader}>
                   <Ionicons name="bulb" size={15} color={COLORS.primary} />
-                  <Text style={styles.aiAdviceTitle}>Gợi ý từ NutriLens AI</Text>
+                  <Text style={styles.aiAdviceTitle}>Gợi ý từ NutriVision AI</Text>
                 </View>
                 <Text style={styles.aiAdviceDesc}>
                   Lượng đạm hôm nay rất lý tưởng cho quá trình duy trì cơ bắp! Bữa tối hãy ưu tiên món thanh đạm ít dầu mỡ nhé.
@@ -453,7 +453,7 @@ export function OnboardingIntroScreen() {
           {currentSlide === 1 && (
             <TouchableOpacity onPress={handleGoToSignIn}>
               <Text style={styles.secondaryLinkText}>
-                Tôi đã có tài khoản NutriLens • <Text style={{ color: COLORS.primary, fontWeight: '700' }}>Đăng nhập</Text>
+                Tôi đã có tài khoản NutriVision • <Text style={{ color: COLORS.primary, fontWeight: '700' }}>Đăng nhập</Text>
               </Text>
             </TouchableOpacity>
           )}

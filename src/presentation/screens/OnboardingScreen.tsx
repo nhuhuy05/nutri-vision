@@ -10,6 +10,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
@@ -127,6 +128,7 @@ export function OnboardingScreen() {
 
   const handleCompleteSetup = async () => {
     try {
+      await AsyncStorage.setItem('@nutrivision_has_completed_setup', 'true');
       await updateGoals(
         {
           calories: calculations.targetCalories,
@@ -140,6 +142,7 @@ export function OnboardingScreen() {
       notify.toast('Đã lưu kế hoạch dinh dưỡng thành công! 🎉');
       router.replace('/(tabs)');
     } catch {
+      await AsyncStorage.setItem('@nutrivision_has_completed_setup', 'true');
       router.replace('/(tabs)');
     }
   };
@@ -172,14 +175,14 @@ export function OnboardingScreen() {
         <Text style={styles.topBarTitle}>
           {currentStep === 4
             ? 'Hoàn Tất Thiết Lập'
-            : `Thiết Lập Hồ Sơ ${currentStep} NutriLens`}
+            : `Thiết Lập Hồ Sơ ${currentStep} NutriVision`}
         </Text>
 
         <TouchableOpacity
           style={styles.circleBtn}
           onPress={() =>
             notify.info(
-              'Cố vấn dinh dưỡng NutriLens AI',
+              'Cố vấn dinh dưỡng NutriVision AI',
               'Các chỉ số của bạn được tính toán theo công thức khoa học lâm sàng Mifflin-St Jeor nhằm thiết lập mức calo và macro chuẩn hóa cho ẩm thực Việt.'
             )
           }
@@ -455,7 +458,7 @@ export function OnboardingScreen() {
               <View style={styles.securityHintRow}>
                 <Ionicons name="shield-checkmark" size={14} color={COLORS.primary} />
                 <Text style={styles.securityHintText}>
-                  NutriLens bảo mật 100% dữ liệu y sinh học theo tiêu chuẩn sức khỏe cá nhân.
+                  NutriVision bảo mật 100% dữ liệu y sinh học theo tiêu chuẩn sức khỏe cá nhân.
                 </Text>
               </View>
             </View>
@@ -617,7 +620,7 @@ export function OnboardingScreen() {
             <View style={styles.introHeader}>
               <Text style={styles.stepHeading}>Mục tiêu sức khỏe của bạn</Text>
               <Text style={styles.stepSubtitle}>
-                NutriLens AI sẽ thiết kế thực đơn phù hợp với mục tiêu và thói quen ăn uống của bạn.
+                NutriVision AI sẽ thiết kế thực đơn phù hợp với mục tiêu và thói quen ăn uống của bạn.
               </Text>
             </View>
 
@@ -718,7 +721,7 @@ export function OnboardingScreen() {
               </View>
               <Text style={styles.culinaryTitle}>Món Việt chuẩn Macro</Text>
               <Text style={styles.culinarySubtitle}>
-                NutriLens nhận diện chính xác phở, bún, cơm tấm và định lượng calo thông minh theo chuẩn Bộ Y tế.
+                NutriVision nhận diện chính xác phở, bún, cơm tấm và định lượng calo thông minh theo chuẩn Bộ Y tế.
               </Text>
             </View>
 
@@ -781,7 +784,7 @@ export function OnboardingScreen() {
               </View>
               <Text style={styles.celebrationTitle}>Kế hoạch đã sẵn sàng! 🎉</Text>
               <Text style={styles.celebrationSubtitle}>
-                Dựa trên thể trạng và mục tiêu của bạn, NutriLens AI đã chuẩn hoá chế độ dinh dưỡng tối ưu mỗi ngày:
+                Dựa trên thể trạng và mục tiêu của bạn, NutriVision AI đã chuẩn hoá chế độ dinh dưỡng tối ưu mỗi ngày:
               </Text>
             </View>
 
@@ -890,7 +893,7 @@ export function OnboardingScreen() {
                 <Text style={styles.quickTipTitle}>Mẹo khởi đầu nhanh</Text>
               </View>
               <Text style={styles.quickTipDesc}>
-                Hãy bắt đầu bằng việc chụp ảnh đĩa thức ăn đầu tiên của bạn vào bữa trưa hoặc tối nay! NutriLens nhận diện khẩu phần chỉ sau 2 giây.
+                Hãy bắt đầu bằng việc chụp ảnh đĩa thức ăn đầu tiên của bạn vào bữa trưa hoặc tối nay! NutriVision nhận diện khẩu phần chỉ sau 2 giây.
               </Text>
             </View>
 

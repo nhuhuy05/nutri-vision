@@ -1,6 +1,5 @@
 import { supabase } from './supabaseClient';
 import { Session } from '../../../domain/entities/Session';
-import { secureSessionStorage } from '../../infrastructure/SecureSessionStorage';
 
 export class AuthRemoteDataSource {
   /**
@@ -25,10 +24,6 @@ export class AuthRemoteDataSource {
     const user = data.user;
     if (!user) {
       throw new Error('Đăng ký thất bại: Không tìm thấy thông tin tài khoản.');
-    }
-
-    if (data.session?.refresh_token) {
-      await secureSessionStorage.setItem('@nutrivision_biometric_token', data.session.refresh_token);
     }
 
     return {
@@ -59,10 +54,6 @@ export class AuthRemoteDataSource {
     const user = data.user;
     if (!user) {
       throw new Error('Đăng nhập thất bại: Không tìm thấy người dùng.');
-    }
-
-    if (data.session?.refresh_token) {
-      await secureSessionStorage.setItem('@nutrivision_biometric_token', data.session.refresh_token);
     }
 
     return {

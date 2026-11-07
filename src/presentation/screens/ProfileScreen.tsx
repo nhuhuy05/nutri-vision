@@ -60,7 +60,7 @@ export function ProfileScreen() {
   const handleLogout = () => {
     notify.confirm(
       'Đăng xuất',
-      'Bạn có chắc chắn muốn đăng xuất tài khoản khỏi NutriLens?',
+      'Bạn có chắc chắn muốn đăng xuất tài khoản khỏi NutriVision?',
       async () => {
         await logout();
         notify.toast('Đã đăng xuất');
@@ -236,7 +236,7 @@ export function ProfileScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Ionicons name="sparkles" size={18} color={COLORS.primary} />
             <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.text }}>
-              Xem lại giới thiệu NutriLens AI (3 slide)
+              Xem lại giới thiệu NutriVision AI (3 slide)
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
-    paddingBottom: 40,
+    paddingBottom: 110,
   },
   card: {
     backgroundColor: COLORS.card,

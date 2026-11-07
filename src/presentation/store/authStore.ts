@@ -6,8 +6,6 @@ import {
   signOutUseCase,
   resetPasswordUseCase,
   getCurrentSessionUseCase,
-  authenticateWithBiometricsUseCase,
-  checkBiometricAvailabilityUseCase,
   getProfileUseCase,
   updateProfileUseCase,
 } from '../../di/container';
@@ -18,14 +16,10 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  isBiometricAvailable: boolean;
-  hasBiometricKey: boolean;
-  biometryType: string;
   savedEmail: string;
+  loadSavedEmail: () => Promise<void>;
   checkSession: () => Promise<void>;
-  checkBiometrics: () => Promise<void>;
   login: (email: string, password: string, rememberMe?: boolean) => Promise<boolean>;
-  loginWithBiometrics: () => Promise<boolean>;
   resetPassword: (email: string) => Promise<boolean>;
   register: (email: string, password: string, name: string) => Promise<boolean>;
   updateUserProfile: (name: string) => Promise<boolean>;
@@ -41,23 +35,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   isLoading: false,
   error: null,
-  isBiometricAvailable: false,
-  hasBiometricKey: false,
-  biometryType: 'Face ID',
   savedEmail: '',
 
-  checkBiometrics: async () => {
+  loadSavedEmail: async () => {
     try {
-      const res = await checkBiometricAvailabilityUseCase.execute();
       const saved = await secureSessionStorage.getItem('@nutrivision_saved_email');
-      set({
-        isBiometricAvailable: res.isAvailable,
-        biometryType: res.biometryType || 'Face ID',
-        hasBiometricKey: res.hasEnrolledKey,
-        savedEmail: saved || '',
-      });
+      set({ savedEmail: saved || '' });
     } catch {
-      set({ isBiometricAvailable: false, hasBiometricKey: false });
+      set({ savedEmail: '' });
     }
   },
 
@@ -109,7 +94,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
         savedEmail: rememberMe ? email : '',
-        hasBiometricKey: true,
       });
       return true;
     } else {
@@ -129,31 +113,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       return true;
     } else {
       set({ error: result.error.message });
-      return false;
-    }
-  },
-
-  loginWithBiometrics: async () => {
-    set({ isLoading: true, error: null });
-    const result = await authenticateWithBiometricsUseCase.execute();
-    if (result.success) {
-      const sessionUser = result.data.user;
-      const profileResult = await getProfileUseCase.execute(sessionUser.id);
-      const userProfile: UserProfile = profileResult.success
-        ? profileResult.data
-        : sessionUser;
-
-      set({
-        user: userProfile,
-        isAuthenticated: true,
-        isLoading: false,
-      });
-      return true;
-    } else {
-      set({
-        isLoading: false,
-        error: result.error.message,
-      });
       return false;
     }
   },
