@@ -6,6 +6,8 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { getDatabase } from '@/data/datasources/local/db/connection';
 import { COLORS } from '@/presentation/theme';
 import { queryClient } from '@/presentation/query';
+import { useAuthStore } from '@/presentation/store/authStore';
+import { NotificationProvider } from '@/presentation/components';
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
@@ -14,6 +16,7 @@ export default function RootLayout() {
     async function bootstrap() {
       try {
         await getDatabase();
+        await useAuthStore.getState().checkSession();
       } catch (e) {
         console.error('App bootstrap error:', e);
       } finally {
@@ -59,6 +62,7 @@ export default function RootLayout() {
           }}
         />
       </Stack>
+      <NotificationProvider />
     </QueryClientProvider>
   );
 }
@@ -77,4 +81,3 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
-

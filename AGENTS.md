@@ -1,41 +1,18 @@
-This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
+# NutriVision Project Rules
 
-## Expo has changed — do not trust your training data
+## 1. Không tự ý Commit (No Auto-Commit)
+- **TUYỆT ĐỐI KHÔNG** tự động chạy `git commit` hoặc `git push` sau khi sửa code hay hoàn tất tác vụ.
+- Chỉ thực hiện commit khi người dùng yêu cầu rõ ràng (ví dụ: *"commit đi"*, *"hãy commit"*).
+- Sau khi hoàn tất sửa code, chỉ chạy `git status` và báo cáo danh sách file đã thay đổi để người dùng tự review.
 
-Expo ships breaking changes every SDK release. APIs you remember are likely renamed, moved, or removed. Before writing any code that touches an Expo, EAS, or React Native API:
+## 2. Tiêu chuẩn kiểm tra bắt buộc (Verification)
+- Trước khi báo cáo hoàn tất tác vụ, bắt buộc phải vượt qua:
+  ```bash
+  npx tsc --noEmit   # Đảm bảo 0 lỗi TypeScript
+  npx expo lint      # Đảm bảo 0 lỗi ESLint
+  ```
 
-1. Read the major version of the `expo` package in `package.json`.
-2. Fetch the matching versioned docs: `https://docs.expo.dev/versions/v<major>.0.0/`
-3. For anything else, fetch https://docs.expo.dev/llms.txt — an index of all Expo docs with corrections to common LLM misconceptions. Follow its links to the specific page you need; never answer from memory.
-
-## Commands
-
-Use `bunx` instead of `npx` if the project uses bun (`bun.lock` present).
-
-```bash
-npx expo install <package>  # ALWAYS use instead of npm/yarn/pnpm/bun add — resolves SDK-compatible versions
-npx expo start              # start the dev server
-npx expo lint               # lint
-npx tsc --noEmit            # typecheck
-npx expo-doctor             # diagnose dependency and config issues
-npx expo install --fix      # fix incompatible package versions
-```
-
-Run lint and typecheck before declaring any task done.
-
-## Navigation & Routing
-
-- Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
-- Import `Link`, `router`, and `useLocalSearchParams` from `expo-router`.
-- Docs: https://docs.expo.dev/router/introduction.md
-
-## Building with EAS
-
-Use EAS to build, sign, and submit the app in the cloud (`eas build`, `eas submit`) and to ship over-the-air updates (`eas update`) — no local Xcode or Android Studio required. Run EAS CLI as `bunx eas-cli <command>` in Bun projects, or `npx eas-cli@latest <command>` otherwise; substitute that for bare `eas` in docs examples.
-Docs: https://docs.expo.dev/eas/index.md
-
-## Rules
-
-- If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
-- Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
-- Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+## 3. Cấu trúc & Điều hướng
+- **Expo Router**: Các route/màn hình đặt trong `app/`.
+- **Clean Architecture**: Toàn bộ UI components, screens, stores, usecases, repositories đặt trong `src/` (tách biệt hoàn toàn khỏi routing).
+- **Cài đặt thư viện**: Luôn sử dụng `npx expo install <package>` để đảm bảo tương thích với phiên bản Expo SDK của dự án.

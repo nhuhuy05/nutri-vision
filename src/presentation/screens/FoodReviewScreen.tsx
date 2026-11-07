@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Alert,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,6 +15,7 @@ import { MealType } from '../../domain/entities/MealType';
 import { getFoodByIdUseCase } from '../../di/container';
 import { useAuthStore, useUIStore } from '../store';
 import { useDiary } from '../hooks/useDiary';
+import { notify } from '../utils/notify';
 
 const PORTION_OPTIONS = [
   { label: '0.5x (Ít / Nửa phần)', value: 0.5 },
@@ -93,21 +93,16 @@ export function FoodReviewScreen() {
         synced: false,
       });
 
-      Alert.alert(
-        'Đã lưu thành công!',
+      notify.success(
+        'Đã lưu thành công! 🎉',
         `Đã thêm ${food.name} vào ${
           MEAL_TYPES.find((m) => m.type === selectedMealType)?.label
         }.`,
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/(tabs)/diary'),
-          },
-        ]
+        () => router.replace('/(tabs)/diary')
       );
     } catch (err) {
       console.error('Save meal error:', err);
-      Alert.alert('Lỗi', 'Không thể lưu món ăn vào nhật ký.');
+      notify.error('Lỗi', 'Không thể lưu món ăn vào nhật ký.');
     } finally {
       setIsSaving(false);
     }

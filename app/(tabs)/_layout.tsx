@@ -1,21 +1,19 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
+import { CustomTabBar } from '@/presentation/components';
 import { COLORS } from '@/presentation/theme';
 
 export default function TabsLayout() {
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: true,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textMuted,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
-          borderTopColor: COLORS.border,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 6,
+          position: 'absolute',
+          backgroundColor: 'transparent',
+          borderTopWidth: 0,
+          elevation: 0,
         },
         headerStyle: {
           backgroundColor: '#FFFFFF',
@@ -29,54 +27,33 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tổng quan',
-          tabBarLabel: 'Tổng quan',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="pie-chart-outline" size={size} color={color as string} />
-          ),
+          title: 'Trang chủ',
         }}
       />
       <Tabs.Screen
         name="diary"
         options={{
           title: 'Nhật ký',
-          tabBarLabel: 'Nhật ký',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book-outline" size={size} color={color as string} />
-          ),
         }}
       />
       <Tabs.Screen
         name="scan"
         options={{
-          title: 'Quét AI',
-          tabBarLabel: 'Quét món',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="scan-circle" size={size + 4} color={color as string} />
-          ),
+          title: 'Quét món AI',
         }}
       />
       <Tabs.Screen
         name="reports"
         options={{
-          title: 'Báo cáo',
-          tabBarLabel: 'Báo cáo',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="stats-chart-outline" size={size} color={color as string} />
-          ),
+          title: 'Thống kê',
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Hồ sơ cá nhân',
-          tabBarLabel: 'Hồ sơ',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color as string} />
-          ),
+          title: 'Cá nhân',
         }}
       />
     </Tabs>
   );
 }
-

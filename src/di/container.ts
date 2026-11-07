@@ -36,9 +36,13 @@ import { GetWeeklyReportUseCase } from '../domain/usecases/report/GetWeeklyRepor
 import { RecognizeDishUseCase } from '../domain/usecases/recognition/RecognizeDishUseCase';
 import { GetDailyGoalsUseCase } from '../domain/usecases/goals/GetDailyGoalsUseCase';
 import { UpdateDailyGoalsUseCase } from '../domain/usecases/goals/UpdateDailyGoalsUseCase';
+import { SignUpUseCase } from '../domain/usecases/auth/SignUpUseCase';
 import { SignInUseCase } from '../domain/usecases/auth/SignInUseCase';
 import { SignOutUseCase } from '../domain/usecases/auth/SignOutUseCase';
+import { ResetPasswordUseCase } from '../domain/usecases/auth/ResetPasswordUseCase';
 import { GetCurrentSessionUseCase } from '../domain/usecases/auth/GetCurrentSessionUseCase';
+import { GetProfileUseCase } from '../domain/usecases/profile/GetProfileUseCase';
+import { UpdateProfileUseCase } from '../domain/usecases/profile/UpdateProfileUseCase';
 import { SyncPendingMealLogsUseCase } from '../domain/usecases/sync/SyncPendingMealLogsUseCase';
 import { GetPendingSyncCountUseCase } from '../domain/usecases/sync/GetPendingSyncCountUseCase';
 
@@ -87,9 +91,13 @@ export const recognizeDishUseCase = new RecognizeDishUseCase(foodRecognitionRepo
 export const getDailyGoalsUseCase = new GetDailyGoalsUseCase(goalRepository);
 export const updateDailyGoalsUseCase = new UpdateDailyGoalsUseCase(goalRepository);
 
+export const signUpUseCase = new SignUpUseCase(authRepository);
 export const signInUseCase = new SignInUseCase(authRepository);
 export const signOutUseCase = new SignOutUseCase(authRepository);
+export const resetPasswordUseCase = new ResetPasswordUseCase(authRepository);
 export const getCurrentSessionUseCase = new GetCurrentSessionUseCase(authRepository);
+export const getProfileUseCase = new GetProfileUseCase(profileRepository);
+export const updateProfileUseCase = new UpdateProfileUseCase(profileRepository);
 
 export const syncPendingMealLogsUseCase = new SyncPendingMealLogsUseCase(
   mealLogRepository,
@@ -97,4 +105,3 @@ export const syncPendingMealLogsUseCase = new SyncPendingMealLogsUseCase(
   networkInfo
 );
 export const getPendingSyncCountUseCase = new GetPendingSyncCountUseCase(syncRepository);
-
