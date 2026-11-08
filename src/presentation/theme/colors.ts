@@ -1,29 +1,69 @@
-export const COLORS = {
-  // Vibrant Fresh Green Palette (Tươi sáng, năng động, chuẩn ứng dụng dinh dưỡng hiện đại)
-  primary: '#16A34A',          // Vibrant Leaf Green (Tươi sáng, rõ nét, năng động)
-  primaryDark: '#15803D',      // Deep Emerald Green (Dành cho text nhấn)
-  primaryLight: '#DCFCE7',     // Crisp Mint Tint (Nền badge, thẻ active)
-  neonMint: '#4ADE80',         // Vibrant Neon Mint (AI accents, sparkles)
-  neonMintLight: '#BBF7D0',    // Soft Mint
-  neonMintGlow: 'rgba(74, 222, 128, 0.45)',
+import { useColorScheme } from 'react-native';
 
-  secondary: '#2563EB',        // Blue for water / sync
-  accent: '#F59E0B',           // Amber
-  danger: '#EF4444',           // Red
-  purple: '#8B5CF6',           // Protein
-  yellow: '#EAB308',           // Fat
-
-  background: '#F8FCF8',       // Clean, bright, airy background
+export const LIGHT_COLORS = {
+  primary: '#16803A',
+  primaryDark: '#116B30',
+  primaryLight: '#DCFCE7',
+  neonMint: '#22C55E',
+  neonMintLight: '#BBF7D0',
+  neonMintGlow: 'rgba(34, 197, 94, 0.35)',
+  secondary: '#1D4ED8',
+  accent: '#B45309',
+  danger: '#B91C1C',
+  purple: '#6D28D9',
+  yellow: '#A16207',
+  background: '#F7FAF7',
   card: '#FFFFFF',
-  cardShadow: 'rgba(22, 163, 74, 0.10)',
-  text: '#111827',             // Sharp charcoal
-  textSecondary: '#4B5563',    // Muted grey
-  textMuted: '#9CA3AF',
-  border: '#E2EFE4',
-  borderLight: '#F0F8F1',
-  inputBg: '#FAFCFA',
-
-  success: '#16A34A',
-  warning: '#F59E0B',
-  offline: '#64748B',
+  cardElevated: '#FFFFFF',
+  cardShadow: 'rgba(17, 107, 48, 0.10)',
+  text: '#111827',
+  textSecondary: '#4B5563',
+  textMuted: '#6B7280',
+  border: '#D9E8DC',
+  borderLight: '#EDF4EE',
+  inputBg: '#F7FAF7',
+  success: '#16803A',
+  warning: '#B45309',
+  offline: '#475569',
+  overlay: 'rgba(15, 23, 42, 0.55)',
+  inverseText: '#FFFFFF',
 };
+
+export const DARK_COLORS: typeof LIGHT_COLORS = {
+  primary: '#4ADE80',
+  primaryDark: '#86EFAC',
+  primaryLight: '#153A24',
+  neonMint: '#4ADE80',
+  neonMintLight: '#225B37',
+  neonMintGlow: 'rgba(74, 222, 128, 0.25)',
+  secondary: '#60A5FA',
+  accent: '#FBBF24',
+  danger: '#F87171',
+  purple: '#C4B5FD',
+  yellow: '#FACC15',
+  background: '#0D1410',
+  card: '#151E18',
+  cardElevated: '#1B2720',
+  cardShadow: 'rgba(0, 0, 0, 0.35)',
+  text: '#F3F4F6',
+  textSecondary: '#CBD5E1',
+  textMuted: '#9CA3AF',
+  border: '#304438',
+  borderLight: '#24342B',
+  inputBg: '#111A15',
+  success: '#4ADE80',
+  warning: '#FBBF24',
+  offline: '#CBD5E1',
+  overlay: 'rgba(0, 0, 0, 0.72)',
+  inverseText: '#0D1410',
+};
+
+export type AppColors = typeof LIGHT_COLORS;
+
+// Kept for existing screens; redesigned modules use useAppTheme for adaptive colors.
+export const COLORS = LIGHT_COLORS;
+
+export function useAppTheme() {
+  const isDark = useColorScheme() === 'dark';
+  return { colors: isDark ? DARK_COLORS : LIGHT_COLORS, isDark };
+}

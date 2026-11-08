@@ -33,6 +33,7 @@ import { GetMealLogsByDateUseCase } from '../domain/usecases/meal/GetMealLogsByD
 import { DeleteMealLogUseCase } from '../domain/usecases/meal/DeleteMealLogUseCase';
 import { GetDailySummaryUseCase } from '../domain/usecases/summary/GetDailySummaryUseCase';
 import { GetWeeklyReportUseCase } from '../domain/usecases/report/GetWeeklyReportUseCase';
+import { GetNutritionReportUseCase } from '../domain/usecases/report/GetNutritionReportUseCase';
 import { RecognizeDishUseCase } from '../domain/usecases/recognition/RecognizeDishUseCase';
 import { GetDailyGoalsUseCase } from '../domain/usecases/goals/GetDailyGoalsUseCase';
 import { UpdateDailyGoalsUseCase } from '../domain/usecases/goals/UpdateDailyGoalsUseCase';
@@ -86,6 +87,7 @@ export const deleteMealLogUseCase = new DeleteMealLogUseCase(mealLogRepository);
 
 export const getDailySummaryUseCase = new GetDailySummaryUseCase(mealLogRepository, goalRepository);
 export const getWeeklyReportUseCase = new GetWeeklyReportUseCase(mealLogRepository);
+export const getNutritionReportUseCase = new GetNutritionReportUseCase(mealLogRepository);
 export const recognizeDishUseCase = new RecognizeDishUseCase(foodRecognitionRepository);
 
 export const getDailyGoalsUseCase = new GetDailyGoalsUseCase(goalRepository);

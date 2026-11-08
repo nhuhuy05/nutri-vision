@@ -12,7 +12,11 @@ export const queryKeys = {
     byDate: (userId: string, date: string) => ['summary', userId, date] as const,
   },
   report: {
-    weekly: (referenceDate: string) => ['report', 'weekly', referenceDate] as const,
+    weekly: (referenceDate: string) =>
+      ['report', 'weekly', referenceDate] as const,
+
+    period: (referenceDate: string, period: string) =>
+      ['report', period, referenceDate] as const,
   },
   goals: {
     user: (userId: string) => ['goals', userId] as const,
