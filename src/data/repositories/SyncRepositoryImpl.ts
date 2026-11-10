@@ -5,8 +5,11 @@ import { Failure } from '../../domain/common/Failure';
 import { MealLogLocalDataSource } from '../datasources/local/MealLogLocalDataSource';
 import { MealLogRemoteDataSource } from '../datasources/remote/MealLogRemoteDataSource';
 import { SyncMetaLocalDataSource } from '../datasources/local/SyncMetaLocalDataSource';
-import { MealLogDTO } from '../dto/MealLogDTO';
-import { MealLogMapper } from '../mappers/MealLogMapper';
+import {
+  toRemoteMealLogDTO,
+  toMealLogInsertData,
+  fromRemoteToMealLogEntity,
+} from '../mappers/mealMapper';
 import { ErrorMapper } from '../infrastructure/ErrorMapper';
 
 export class SyncRepositoryImpl implements ISyncRepository {
@@ -23,7 +26,7 @@ export class SyncRepositoryImpl implements ISyncRepository {
       }
 
       // Convert to remote DTOs and upsert to Supabase
-      const remoteDtos = pending.map(MealLogMapper.toRemoteDTO);
+      const remoteDtos = pending.map(toRemoteMealLogDTO);
       await this.mealLogRemoteDataSource.upsertMealLogs(remoteDtos);
 
       // Mark locally as synced
@@ -48,15 +51,9 @@ export class SyncRepositoryImpl implements ISyncRepository {
 
       const pulledLogs: MealLog[] = [];
       for (const remoteDto of remoteChanges) {
-        const localDto: MealLogDTO = {
-          ...remoteDto,
-          photo_uri: remoteDto.photo_uri ?? null,
-          updated_at: remoteDto.updated_at ?? null,
-          deleted_at: null,
-          synced: 1,
-        };
-        await this.mealLogLocalDataSource.insertOrUpdate(localDto);
-        pulledLogs.push(MealLogMapper.toDomain(localDto));
+        const mealLog = fromRemoteToMealLogEntity(remoteDto);
+        await this.mealLogLocalDataSource.insertOrUpdate(toMealLogInsertData(mealLog));
+        pulledLogs.push(mealLog);
       }
 
       const newCursor = new Date().toISOString();

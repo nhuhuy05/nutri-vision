@@ -3,7 +3,7 @@ import { FoodItem } from '../../domain/entities/FoodItem';
 import { Result, ok, fail } from '../../domain/common/Result';
 import { Failure } from '../../domain/common/Failure';
 import { FoodLocalDataSource } from '../datasources/local/FoodLocalDataSource';
-import { FoodMapper } from '../mappers/FoodMapper';
+import { toFoodEntity } from '../mappers/foodMapper';
 import { ErrorMapper } from '../infrastructure/ErrorMapper';
 
 export class FoodRepositoryImpl implements IFoodRepository {
@@ -11,9 +11,8 @@ export class FoodRepositoryImpl implements IFoodRepository {
 
   async getAllFoods(): Promise<Result<FoodItem[], Failure>> {
     try {
-      const dtos = await this.localDataSource.getAllFoods();
-      const foods = dtos.map(FoodMapper.toDomain);
-      return ok(foods);
+      const rows = await this.localDataSource.getAllFoods();
+      return ok(rows.map(toFoodEntity));
     } catch (e) {
       return fail(ErrorMapper.toFailure(e));
     }
@@ -21,9 +20,8 @@ export class FoodRepositoryImpl implements IFoodRepository {
 
   async searchFoods(query: string): Promise<Result<FoodItem[], Failure>> {
     try {
-      const dtos = await this.localDataSource.searchFoods(query);
-      const foods = dtos.map(FoodMapper.toDomain);
-      return ok(foods);
+      const rows = await this.localDataSource.searchFoods(query);
+      return ok(rows.map(toFoodEntity));
     } catch (e) {
       return fail(ErrorMapper.toFailure(e));
     }
@@ -31,8 +29,8 @@ export class FoodRepositoryImpl implements IFoodRepository {
 
   async getFoodById(id: string): Promise<Result<FoodItem | null, Failure>> {
     try {
-      const dto = await this.localDataSource.getFoodById(id);
-      return ok(dto ? FoodMapper.toDomain(dto) : null);
+      const row = await this.localDataSource.getFoodById(id);
+      return ok(row ? toFoodEntity(row) : null);
     } catch (e) {
       return fail(ErrorMapper.toFailure(e));
     }

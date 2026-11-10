@@ -4,6 +4,6 @@ export default defineConfig({
   dialect: 'sqlite',
   driver: 'expo',
   schema: './src/data/datasources/local/db/schema.ts',
-  out: './drizzle',
+  out: './src/data/datasources/local/db/drizzle',
 });
 
