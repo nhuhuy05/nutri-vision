@@ -1,23 +1,26 @@
 import { DailyGoals } from '../../domain/entities/DailyGoals';
-import { NutritionGoalRow, NutritionGoalInsertData } from '../dto/local';
+import { GoalDTO } from '../dto/GoalDTO';
 
-export function toDailyGoalsEntity(row: NutritionGoalRow): DailyGoals {
-  return {
-    calories: row.calories,
-    protein: row.proteinG,
-    carbs: row.carbsG,
-    fat: row.fatG,
-    waterMl: row.waterMl,
-  };
+export class GoalMapper {
+  static toDomain(dto: GoalDTO): DailyGoals {
+    return {
+      calories: dto.calories,
+      protein: dto.protein,
+      carbs: dto.carbs,
+      fat: dto.fat,
+      waterMl: dto.water_ml,
+    };
+  }
+
+  static toDTO(domain: DailyGoals, userId: string = 'local-user'): GoalDTO {
+    return {
+      user_id: userId,
+      calories: domain.calories,
+      protein: domain.protein,
+      carbs: domain.carbs,
+      fat: domain.fat,
+      water_ml: domain.waterMl,
+      updated_at: new Date().toISOString(),
+    };
+  }
 }
-
-export function toNutritionGoalInsertData(goals: DailyGoals): NutritionGoalInsertData {
-  return {
-    calories: goals.calories,
-    protein: goals.protein,
-    carbs: goals.carbs,
-    fat: goals.fat,
-    waterMl: goals.waterMl,
-  };
-}
-
