@@ -8,3 +8,5 @@ export * from './CustomTabBar';
 export * from './DailyNutritionSummary';
 export * from './FoodForm';
 export * from './NutritionCharts';
+export * from './CalorieRing';
+export * from './PortionSlider';
