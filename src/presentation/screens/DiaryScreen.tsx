@@ -20,6 +20,7 @@ import {
   OfflineBanner,
 } from '../components';
 import { useDiary } from '../hooks/useDiary';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore, useGoalStore, useUIStore } from '../store';
 import { AppColors, useAppTheme } from '../theme';
 import { notify } from '../utils/notify';
@@ -47,6 +48,7 @@ const formatDate = (iso: string) =>
   }).format(new Date(`${iso}T12:00:00`));
 
 export function DiaryScreen() {
+  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { selectedDate, setSelectedDate } = useUIStore();
@@ -146,7 +148,7 @@ export function DiaryScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <OfflineBanner />
       <View style={styles.hero}>
         <Text style={styles.screenTitle}>Nhật ký ăn uống</Text>

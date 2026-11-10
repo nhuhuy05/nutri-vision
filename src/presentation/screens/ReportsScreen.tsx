@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ReportPeriod } from '../../domain/services/ReportAggregator';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaloriesChart, MacroBar, MacroDonut, OfflineBanner } from '../components';
 import { useNutritionReport } from '../hooks/useNutritionReport';
 import { useAuthStore, useGoalStore, useUIStore } from '../store';
@@ -34,6 +35,7 @@ const shortDate = (iso: string) =>
   );
 
 export function ReportsScreen() {
+  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { selectedDate, setSelectedDate } = useUIStore();
@@ -78,7 +80,7 @@ export function ReportsScreen() {
   const divisor = Math.max(report?.daysWithRecords ?? 0, 1);
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <OfflineBanner />
       <View style={styles.header}>
         <Text style={styles.title}>Thống kê dinh dưỡng</Text>

@@ -161,11 +161,6 @@ export function CustomTabBar({
               >
                 {config.label}
               </Text>
-              {isFocused ? (
-                <View style={styles.activeDot} />
-              ) : (
-                <View style={styles.inactiveDotPlaceholder} />
-              )}
             </TouchableOpacity>
           );
         })}
@@ -238,18 +233,6 @@ const styles = StyleSheet.create({
   tabLabelInactive: {
     color: COLORS.textMuted,
     fontWeight: '500',
-  },
-  activeDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.primary,
-    marginTop: 2,
-  },
-  inactiveDotPlaceholder: {
-    width: 4,
-    height: 4,
-    marginTop: 2,
   },
   centerTabSlot: {
     flex: 1,

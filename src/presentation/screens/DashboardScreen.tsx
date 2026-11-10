@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '../theme/colors';
 import { useGoalStore, useAuthStore, useUIStore } from '../store';
 import { useDiary } from '../hooks/useDiary';
@@ -16,6 +17,7 @@ import { useSync } from '../hooks/useSync';
 import { MacroBar, OfflineBanner, CalorieRing } from '../components';
 
 export function DashboardScreen() {
+  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const { user } = useAuthStore();
   const { selectedDate } = useUIStore();
@@ -33,7 +35,7 @@ export function DashboardScreen() {
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: colors.background }]}
-      contentContainerStyle={styles.content}
+      contentContainerStyle={[styles.content, { paddingTop: Math.max(insets.top, 16) }]}
       refreshControl={
         <RefreshControl
           refreshing={isLoading}

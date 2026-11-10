@@ -10,12 +10,14 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../theme';
 import { useAuthStore, useGoalStore } from '../store';
 import { useSync } from '../hooks/useSync';
 import { notify } from '../utils/notify';
 
 export function ProfileScreen() {
+  const insets = useSafeAreaInsets();
   const { user, isAuthenticated, logout, updateUserProfile, isLoading: isAuthLoading } = useAuthStore();
   const { goals, updateGoals } = useGoalStore();
   const { pendingCount, isOnline, syncNow, isSyncing } = useSync();
@@ -73,7 +75,7 @@ export function ProfileScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: Math.max(insets.top, 16) }]}>
       {/* Profile Card */}
       <View style={styles.card}>
         <View style={styles.avatarRow}>

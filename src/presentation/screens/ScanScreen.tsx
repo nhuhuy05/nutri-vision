@@ -11,12 +11,14 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../theme';
 import { RecognitionResult } from '../../domain/entities/RecognitionResult';
 import { recognizeDishUseCase } from '../../di/container';
 import { notify } from '../utils/notify';
 
 export function ScanScreen() {
+  const insets = useSafeAreaInsets();
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [candidates, setCandidates] = useState<RecognitionResult[]>([]);
@@ -89,7 +91,7 @@ export function ScanScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: Math.max(insets.top, 16) }]}>
       {/* Photo Preview / Capture Area */}
       <View style={styles.previewBox}>
         {selectedImage ? (

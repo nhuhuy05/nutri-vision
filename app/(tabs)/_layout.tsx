@@ -1,26 +1,18 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { CustomTabBar } from '@/presentation/components';
-import { COLORS } from '@/presentation/theme';
 
 export default function TabsLayout() {
   return (
     <Tabs
       tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
-        headerShown: true,
+        headerShown: false,
         tabBarStyle: {
           position: 'absolute',
           backgroundColor: 'transparent',
           borderTopWidth: 0,
           elevation: 0,
-        },
-        headerStyle: {
-          backgroundColor: '#FFFFFF',
-        },
-        headerTitleStyle: {
-          fontWeight: '700',
-          color: COLORS.text,
         },
       }}
     >
