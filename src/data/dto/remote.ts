@@ -1,4 +1,4 @@
-export interface MealLogDTO {
+export interface RemoteMealLogDTO {
   id: string;
   user_id: string;
   date: string;
@@ -10,9 +10,8 @@ export interface MealLogDTO {
   protein: number;
   carbs: number;
   fat: number;
-  photo_uri: string | null;
+  photo_uri?: string | null;
   created_at: string;
-  updated_at: string | null;
-  deleted_at: string | null;
-  synced: number; // 0: pending, 1: synced
+  updated_at?: string | null;
 }
+

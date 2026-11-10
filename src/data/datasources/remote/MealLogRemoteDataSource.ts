@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { RemoteMealLogDTO } from '../../dto/RemoteMealLogDTO';
+import { RemoteMealLogDTO } from '../../dto/remote';
 
 export class MealLogRemoteDataSource {
   async upsertMealLogs(logs: RemoteMealLogDTO[]): Promise<void> {

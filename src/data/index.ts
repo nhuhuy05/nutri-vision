@@ -1,11 +1,11 @@
 // Data Sources
 export * from './datasources/local/db/connection';
 export * from './datasources/local/db/migrations';
+export * from './datasources/local/db/vietnameseFoods';
 export * from './datasources/local/FoodLocalDataSource';
 export * from './datasources/local/MealLogLocalDataSource';
 export * from './datasources/local/GoalLocalDataSource';
 export * from './datasources/local/SyncMetaLocalDataSource';
-export * from './datasources/local/seed/vietnameseFoods';
 
 export * from './datasources/remote/supabaseClient';
 export * from './datasources/remote/MealLogRemoteDataSource';
@@ -20,11 +20,11 @@ export * from './infrastructure/NetworkInfo';
 export * from './infrastructure/SecureSessionStorage';
 export * from './infrastructure/ErrorMapper';
 
-// DTOs & Mappers
-export * from './dto/FoodDTO';
-export * from './dto/MealLogDTO';
-export * from './dto/GoalDTO';
-export * from './dto/RemoteMealLogDTO';
+// DTOs
+export * from './dto/local';
+export * from './dto/remote';
+
+// Mappers
 export * from './mappers';
 
 // Repositories

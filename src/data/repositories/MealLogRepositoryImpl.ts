@@ -3,7 +3,7 @@ import { MealLog } from '../../domain/entities/MealLog';
 import { Result, ok, fail } from '../../domain/common/Result';
 import { Failure } from '../../domain/common/Failure';
 import { MealLogLocalDataSource } from '../datasources/local/MealLogLocalDataSource';
-import { MealLogMapper } from '../mappers/MealLogMapper';
+import { toMealLogEntity, toMealLogInsertData } from '../mappers/mealMapper';
 import { ErrorMapper } from '../infrastructure/ErrorMapper';
 
 export class MealLogRepositoryImpl implements IMealLogRepository {
@@ -11,8 +11,8 @@ export class MealLogRepositoryImpl implements IMealLogRepository {
 
   async saveMealLog(log: MealLog): Promise<Result<void, Failure>> {
     try {
-      const dto = MealLogMapper.toDTO(log);
-      await this.localDataSource.insertOrUpdate(dto);
+      const data = toMealLogInsertData(log);
+      await this.localDataSource.insertOrUpdate(data);
       return ok(undefined);
     } catch (e) {
       return fail(ErrorMapper.toFailure(e));
@@ -21,8 +21,8 @@ export class MealLogRepositoryImpl implements IMealLogRepository {
 
   async getMealLogsByDate(date: string): Promise<Result<MealLog[], Failure>> {
     try {
-      const dtos = await this.localDataSource.getByDate(date);
-      return ok(dtos.map(MealLogMapper.toDomain));
+      const rows = await this.localDataSource.getByDate(date);
+      return ok(rows.map(toMealLogEntity));
     } catch (e) {
       return fail(ErrorMapper.toFailure(e));
     }
@@ -30,8 +30,8 @@ export class MealLogRepositoryImpl implements IMealLogRepository {
 
   async getAllMealLogs(): Promise<Result<MealLog[], Failure>> {
     try {
-      const dtos = await this.localDataSource.getAll();
-      return ok(dtos.map(MealLogMapper.toDomain));
+      const rows = await this.localDataSource.getAll();
+      return ok(rows.map(toMealLogEntity));
     } catch (e) {
       return fail(ErrorMapper.toFailure(e));
     }
@@ -48,8 +48,8 @@ export class MealLogRepositoryImpl implements IMealLogRepository {
 
   async getPendingSyncLogs(): Promise<Result<MealLog[], Failure>> {
     try {
-      const dtos = await this.localDataSource.getPendingSync();
-      return ok(dtos.map(MealLogMapper.toDomain));
+      const rows = await this.localDataSource.getPendingSync();
+      return ok(rows.map(toMealLogEntity));
     } catch (e) {
       return fail(ErrorMapper.toFailure(e));
     }
