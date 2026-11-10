@@ -14,7 +14,9 @@ export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
       carbs REAL NOT NULL,
       fat REAL NOT NULL,
       serving_unit TEXT NOT NULL,
-      serving_weight_grams REAL NOT NULL
+      serving_weight_grams REAL NOT NULL,
+      is_custom INTEGER NOT NULL DEFAULT 0,
+      created_by TEXT
     );
 
     CREATE TABLE IF NOT EXISTS meal_logs (
@@ -46,11 +48,43 @@ export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
       updated_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS user_profiles (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      gender TEXT,
+      birth_year INTEGER,
+      height_cm REAL,
+      current_weight_kg REAL,
+      target_weight_kg REAL,
+      activity_level TEXT,
+      diet_preference TEXT,
+      bmr REAL,
+      tdee REAL,
+      avatar_url TEXT,
+      updated_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS weight_logs (
+      id TEXT PRIMARY KEY NOT NULL,
+      user_id TEXT NOT NULL,
+      weight_kg REAL NOT NULL,
+      recorded_at TEXT NOT NULL,
+      note TEXT,
+      synced INTEGER NOT NULL DEFAULT 0
+    );
+
     CREATE TABLE IF NOT EXISTS sync_meta (
       key TEXT PRIMARY KEY NOT NULL,
       value TEXT NOT NULL,
       updated_at TEXT NOT NULL
     );
+
+    -- Indexes for optimized querying
+    CREATE INDEX IF NOT EXISTS idx_meal_logs_date ON meal_logs(date);
+    CREATE INDEX IF NOT EXISTS idx_meal_logs_user_date ON meal_logs(user_id, date);
+    CREATE INDEX IF NOT EXISTS idx_meal_logs_synced ON meal_logs(synced);
+    CREATE INDEX IF NOT EXISTS idx_foods_name ON foods(name);
+    CREATE INDEX IF NOT EXISTS idx_weight_logs_user_date ON weight_logs(user_id, recorded_at);
   `);
 
   // Seed default Vietnamese foods if table is empty
@@ -58,8 +92,8 @@ export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
   if (!countResult || countResult.count === 0) {
     for (const food of VIETNAMESE_FOODS_DATA) {
       await db.runAsync(
-        `INSERT OR REPLACE INTO foods (id, name, name_en, category, calories, protein, carbs, fat, serving_unit, serving_weight_grams)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT OR REPLACE INTO foods (id, name, name_en, category, calories, protein, carbs, fat, serving_unit, serving_weight_grams, is_custom, created_by)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL)`,
         [
           food.id,
           food.name,

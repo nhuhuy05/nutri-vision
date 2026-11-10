@@ -9,6 +9,7 @@ interface MealSectionProps {
   type: MealType;
   logs: MealLog[];
   onAddPress: () => void;
+  onEditPress?: (log: MealLog) => void;
   onDeletePress: (id: string) => void;
 }
 
@@ -16,6 +17,7 @@ export const MealSection: React.FC<MealSectionProps> = ({
   title,
   logs,
   onAddPress,
+  onEditPress,
   onDeletePress,
 }) => {
   const totalCalories = logs.reduce((sum, item) => sum + item.calories, 0);
@@ -39,7 +41,12 @@ export const MealSection: React.FC<MealSectionProps> = ({
         <Text style={styles.emptyText}>Chưa có món ăn nào được ghi lại</Text>
       ) : (
         logs.map((item) => (
-          <View key={item.id} style={styles.itemRow}>
+          <TouchableOpacity
+            key={item.id}
+            style={styles.itemRow}
+            activeOpacity={onEditPress ? 0.7 : 1}
+            onPress={() => onEditPress?.(item)}
+          >
             <View style={{ flex: 1 }}>
               <Text style={styles.foodName}>{item.foodName}</Text>
               <Text style={styles.foodMacros}>
@@ -56,7 +63,7 @@ export const MealSection: React.FC<MealSectionProps> = ({
                 <Ionicons name="trash-outline" size={16} color={COLORS.textMuted} />
               </TouchableOpacity>
             </View>
-          </View>
+          </TouchableOpacity>
         ))
       )}
     </View>

@@ -7,6 +7,7 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.118.0",
     "@tanstack/react-query": "^5.105.3",
+    "drizzle-orm": "^0.45.4",
     "expo": "~58.0.23",
     "expo-constants": "~58.0.14",
     "expo-font": "~58.0.11",
@@ -28,6 +29,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9.0.0",
     "eslint-config-expo": "~58.0.4",
     "typescript": "~6.0.3"
@@ -37,7 +39,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push"
   },
   "private": true
 }
