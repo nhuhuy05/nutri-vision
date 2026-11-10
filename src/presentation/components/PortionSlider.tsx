@@ -46,7 +46,7 @@ export const PortionSlider: React.FC<PortionSliderProps> = ({
           maximumValue={max}
           step={step}
           value={grams}
-          onValueChange={(val) => onGramsChange(Math.round(val))}
+          onValueChange={(val: number) => onGramsChange(Math.round(val))}
           minimumTrackTintColor={colors.primary}
           maximumTrackTintColor={colors.border}
           thumbTintColor={colors.primary}

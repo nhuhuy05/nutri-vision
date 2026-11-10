@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { VIETNAMESE_FOODS_DATA } from '../seed/vietnameseFoods';
+import { VIETNAMESE_FOODS_DATA } from './vietnameseFoods';
 import { DEFAULT_GOALS } from '../../../../domain/constants/defaultGoals';
 
 export function normalizeVietnameseText(text: string): string {

@@ -4,8 +4,7 @@ import { Result, ok, fail } from '../../domain/common/Result';
 import { Failure, NotFoundFailure } from '../../domain/common/Failure';
 import { TFLiteClassifier } from '../datasources/ai/TFLiteClassifier';
 import { FoodLocalDataSource } from '../datasources/local/FoodLocalDataSource';
-import { FoodMapper } from '../mappers/FoodMapper';
-import { RecognitionMapper } from '../mappers/RecognitionMapper';
+import { toFoodEntity } from '../mappers/foodMapper';
 import { ErrorMapper } from '../infrastructure/ErrorMapper';
 
 export class FoodRecognitionRepositoryImpl implements IFoodRecognitionRepository {
@@ -20,10 +19,13 @@ export class FoodRecognitionRepositoryImpl implements IFoodRecognitionRepository
       const results: RecognitionResult[] = [];
 
       for (const pred of predictions) {
-        const foodDto = await this.foodLocalDataSource.getFoodById(pred.foodId);
-        if (foodDto) {
-          const foodEntity = FoodMapper.toDomain(foodDto);
-          results.push(RecognitionMapper.toDomain(pred, foodEntity));
+        const foodRow = await this.foodLocalDataSource.getFoodById(pred.foodId);
+        if (foodRow) {
+          results.push({
+            food: toFoodEntity(foodRow),
+            confidence: pred.confidence,
+            suggestedPortion: 1.0,
+          });
         }
       }
 
@@ -37,4 +39,3 @@ export class FoodRecognitionRepositoryImpl implements IFoodRecognitionRepository
     }
   }
 }
-

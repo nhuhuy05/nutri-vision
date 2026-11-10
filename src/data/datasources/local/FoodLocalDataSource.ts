@@ -1,23 +1,23 @@
 import { eq, or, like, and, asc, sql } from 'drizzle-orm';
 import { getDrizzleDb, schema } from './db/connection';
-import { FoodDTO } from '../../dto/FoodDTO';
+import { FoodRow } from '../../dto/local';
 import { normalizeVietnameseText } from './db/migrations';
 
 export class FoodLocalDataSource {
-  async getAllFoods(): Promise<FoodDTO[]> {
+  async getAllFoods(): Promise<FoodRow[]> {
     const db = await getDrizzleDb();
     const rows = await db
       .select({
         id: schema.foods.id,
         name: schema.foods.name,
-        name_en: schema.foods.nameEn,
+        nameEn: schema.foods.nameEn,
         category: schema.foods.categoryCode,
         calories: sql<number>`ROUND(${schema.foods.calories100g} * COALESCE(${schema.foodServings.grams}, 100) / 100)`,
         protein: sql<number>`ROUND(${schema.foods.protein100g} * COALESCE(${schema.foodServings.grams}, 100) / 100, 1)`,
         carbs: sql<number>`ROUND(${schema.foods.carbs100g} * COALESCE(${schema.foodServings.grams}, 100) / 100, 1)`,
         fat: sql<number>`ROUND(${schema.foods.fat100g} * COALESCE(${schema.foodServings.grams}, 100) / 100, 1)`,
-        serving_unit: sql<string>`COALESCE(${schema.foodServings.label}, '100g')`,
-        serving_weight_grams: sql<number>`COALESCE(${schema.foodServings.grams}, 100)`,
+        servingUnit: sql<string>`COALESCE(${schema.foodServings.label}, '100g')`,
+        servingWeightGrams: sql<number>`COALESCE(${schema.foodServings.grams}, 100)`,
       })
       .from(schema.foods)
       .leftJoin(
@@ -32,7 +32,7 @@ export class FoodLocalDataSource {
     return rows;
   }
 
-  async searchFoods(query: string): Promise<FoodDTO[]> {
+  async searchFoods(query: string): Promise<FoodRow[]> {
     const db = await getDrizzleDb();
     const formatted = `%${query.trim().toLowerCase()}%`;
     const normalized = `%${normalizeVietnameseText(query)}%`;
@@ -41,14 +41,14 @@ export class FoodLocalDataSource {
       .select({
         id: schema.foods.id,
         name: schema.foods.name,
-        name_en: schema.foods.nameEn,
+        nameEn: schema.foods.nameEn,
         category: schema.foods.categoryCode,
         calories: sql<number>`ROUND(${schema.foods.calories100g} * COALESCE(${schema.foodServings.grams}, 100) / 100)`,
         protein: sql<number>`ROUND(${schema.foods.protein100g} * COALESCE(${schema.foodServings.grams}, 100) / 100, 1)`,
         carbs: sql<number>`ROUND(${schema.foods.carbs100g} * COALESCE(${schema.foodServings.grams}, 100) / 100, 1)`,
         fat: sql<number>`ROUND(${schema.foods.fat100g} * COALESCE(${schema.foodServings.grams}, 100) / 100, 1)`,
-        serving_unit: sql<string>`COALESCE(${schema.foodServings.label}, '100g')`,
-        serving_weight_grams: sql<number>`COALESCE(${schema.foodServings.grams}, 100)`,
+        servingUnit: sql<string>`COALESCE(${schema.foodServings.label}, '100g')`,
+        servingWeightGrams: sql<number>`COALESCE(${schema.foodServings.grams}, 100)`,
       })
       .from(schema.foods)
       .leftJoin(
@@ -71,20 +71,20 @@ export class FoodLocalDataSource {
     return rows;
   }
 
-  async getFoodById(id: string): Promise<FoodDTO | null> {
+  async getFoodById(id: string): Promise<FoodRow | null> {
     const db = await getDrizzleDb();
     const rows = await db
       .select({
         id: schema.foods.id,
         name: schema.foods.name,
-        name_en: schema.foods.nameEn,
+        nameEn: schema.foods.nameEn,
         category: schema.foods.categoryCode,
         calories: sql<number>`ROUND(${schema.foods.calories100g} * COALESCE(${schema.foodServings.grams}, 100) / 100)`,
         protein: sql<number>`ROUND(${schema.foods.protein100g} * COALESCE(${schema.foodServings.grams}, 100) / 100, 1)`,
         carbs: sql<number>`ROUND(${schema.foods.carbs100g} * COALESCE(${schema.foodServings.grams}, 100) / 100, 1)`,
         fat: sql<number>`ROUND(${schema.foods.fat100g} * COALESCE(${schema.foodServings.grams}, 100) / 100, 1)`,
-        serving_unit: sql<string>`COALESCE(${schema.foodServings.label}, '100g')`,
-        serving_weight_grams: sql<number>`COALESCE(${schema.foodServings.grams}, 100)`,
+        servingUnit: sql<string>`COALESCE(${schema.foodServings.label}, '100g')`,
+        servingWeightGrams: sql<number>`COALESCE(${schema.foodServings.grams}, 100)`,
       })
       .from(schema.foods)
       .leftJoin(
