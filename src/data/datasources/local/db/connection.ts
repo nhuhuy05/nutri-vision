@@ -18,31 +18,40 @@ async function resetLegacyManualSchemaIfNeeded(db: SQLite.SQLiteDatabase): Promi
     return;
   }
 
-  const legacyTable = await db.getFirstAsync<{ name: string }>(
-    "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'user_profiles'"
+  // Lấy toàn bộ các bảng và view người dùng đã tạo trước đây (loại trừ các bảng hệ thống SQLite)
+  const objects = await db.getAllAsync<{ type: string; name: string }>(
+    "SELECT type, name FROM sqlite_master WHERE type IN ('table', 'view') AND name NOT LIKE 'sqlite_%'"
   );
-  if (!legacyTable) {
+
+  if (objects.length === 0) {
     return;
   }
 
-  await db.execAsync(`
-    PRAGMA foreign_keys = OFF;
-    DROP VIEW IF EXISTS meal_logs;
-    DROP VIEW IF EXISTS goals;
-    DROP TABLE IF EXISTS foods_fts;
-    DROP TABLE IF EXISTS meal_items;
-    DROP TABLE IF EXISTS meals;
-    DROP TABLE IF EXISTS ai_scan_history;
-    DROP TABLE IF EXISTS favorite_foods;
-    DROP TABLE IF EXISTS food_servings;
-    DROP TABLE IF EXISTS foods;
-    DROP TABLE IF EXISTS nutrition_goals;
-    DROP TABLE IF EXISTS water_logs;
-    DROP TABLE IF EXISTS weight_logs;
-    DROP TABLE IF EXISTS sync_meta;
-    DROP TABLE IF EXISTS user_profiles;
-    PRAGMA foreign_keys = ON;
-  `);
+  await db.execAsync('PRAGMA foreign_keys = OFF;');
+
+  // 1. Xóa toàn bộ views trước
+  for (const obj of objects) {
+    if (obj.type === 'view') {
+      try {
+        await db.execAsync(`DROP VIEW IF EXISTS "${obj.name}";`);
+      } catch {
+        // Bỏ qua nếu view đã bị xóa
+      }
+    }
+  }
+
+  // 2. Xóa toàn bộ tables (bao gồm cả virtual tables)
+  for (const obj of objects) {
+    if (obj.type === 'table') {
+      try {
+        await db.execAsync(`DROP TABLE IF EXISTS "${obj.name}";`);
+      } catch {
+        // Bỏ qua nếu là shadow table của FTS đã bị xóa kèm bảng chính
+      }
+    }
+  }
+
+  await db.execAsync('PRAGMA foreign_keys = ON;');
 }
 
 async function initializeDatabase(): Promise<ExpoSQLiteDatabase<typeof schema>> {
