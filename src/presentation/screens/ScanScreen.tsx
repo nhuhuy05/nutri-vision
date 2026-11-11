@@ -43,18 +43,21 @@ export function ScanScreen() {
             quality: 0.8,
             allowsEditing: true,
             aspect: [4, 3],
+            base64: true,
           })
         : await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ['images'],
             quality: 0.8,
             allowsEditing: true,
             aspect: [4, 3],
+            base64: true,
           });
 
       if (!result.canceled && result.assets && result.assets.length > 0) {
-        const uri = result.assets[0].uri;
-        setSelectedImage(uri);
-        analyzeFoodImage(uri);
+        const asset = result.assets[0];
+        setSelectedImage(asset.uri);
+        const imagePayload = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+        analyzeFoodImage(imagePayload);
       }
     } catch (error) {
       console.error('Pick image error:', error);
@@ -86,6 +89,8 @@ export function ScanScreen() {
       params: {
         foodId: candidate.food.id,
         photoUri: selectedImage || undefined,
+        suggestedGrams: String(candidate.food.servingWeightGrams || 100),
+        foodJson: JSON.stringify(candidate.food),
       },
     });
   };
@@ -130,7 +135,7 @@ export function ScanScreen() {
         <View style={styles.analyzingBox}>
           <ActivityIndicator size="small" color={COLORS.primary} />
           <Text style={styles.analyzingText}>
-            AI (TensorFlow Lite) đang phân tích hình ảnh món ăn...
+            AI đang phân tích hình ảnh món ăn...
           </Text>
         </View>
       )}
