@@ -20,3 +20,4 @@ export function toNutritionGoalInsertData(goals: DailyGoals): NutritionGoalInser
     waterMl: goals.waterMl,
   };
 }
+
