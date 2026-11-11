@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MealLog, MealType } from '../../domain/entities';
+import { GUEST_USER_ID } from '../../domain/constants/defaultGoals';
 import {
   DailyNutritionSummary,
   FoodForm,
@@ -62,7 +63,7 @@ export function DiaryScreen() {
   const [dateInput, setDateInput] = useState(selectedDate);
 
   useEffect(() => {
-    loadGoals(user?.id || 'default_user');
+    loadGoals(user?.id || GUEST_USER_ID);
   }, [loadGoals, user?.id]);
 
   const totals = logs.reduce(
@@ -98,7 +99,7 @@ export function DiaryScreen() {
       const now = new Date().toISOString();
       await addMeal({
         id: editingLog?.id ?? `log_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-        userId: editingLog?.userId ?? user?.id ?? 'guest_user',
+        userId: editingLog?.userId ?? user?.id ?? GUEST_USER_ID,
         date: selectedDate,
         mealType: value.mealType,
         foodId: editingLog?.foodId ?? `manual_${Date.now()}`,

@@ -1,6 +1,6 @@
 // Data Sources
 export * from './datasources/local/db/connection';
-export * from './datasources/local/db/migrations';
+export * from './datasources/local/db/seed';
 export * from './datasources/local/db/vietnameseFoods';
 export * from './datasources/local/FoodLocalDataSource';
 export * from './datasources/local/MealLogLocalDataSource';

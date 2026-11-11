@@ -17,6 +17,7 @@ import { useAuthStore, useUIStore } from '../store';
 import { useDiary } from '../hooks/useDiary';
 import { notify } from '../utils/notify';
 import { PortionSlider } from '../components';
+import { GUEST_USER_ID } from '../../domain/constants/defaultGoals';
 
 const MEAL_TYPES: { type: MealType; label: string }[] = [
   { type: 'breakfast', label: 'Bữa sáng' },
@@ -108,7 +109,7 @@ export function FoodReviewScreen() {
     try {
       await addMeal({
         id: 'log_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-        userId: user?.id || 'guest_user',
+        userId: user?.id || GUEST_USER_ID,
         date: selectedDate,
         mealType: selectedMealType,
         foodId: food.id,

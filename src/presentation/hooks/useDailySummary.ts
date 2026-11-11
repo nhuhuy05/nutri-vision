@@ -1,8 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { queryKeys } from '../query/queryKeys';
 import { getDailySummaryUseCase } from '../../di/container';
+import { GUEST_USER_ID } from '../../domain/constants/defaultGoals';
 
-export function useDailySummary(userId: string = 'default_user', date: string) {
+export function useDailySummary(userId: string = GUEST_USER_ID, date: string) {
   return useQuery({
     queryKey: queryKeys.summary.byDate(userId, date),
     queryFn: async () => {

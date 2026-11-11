@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
 import { useGoalStore, useAuthStore } from '../store';
+import { GUEST_USER_ID } from '../../domain/constants/defaultGoals';
 import { notify } from '../utils/notify';
 
 type Gender = 'female' | 'male' | 'other';
@@ -137,7 +138,7 @@ export function OnboardingScreen() {
           fat: calculations.fatGrams,
           waterMl: calculations.waterMl,
         },
-        user?.id || 'guest_user_id'
+        user?.id || GUEST_USER_ID
       );
       notify.toast('Đã lưu kế hoạch dinh dưỡng thành công! 🎉');
       router.replace('/(tabs)');

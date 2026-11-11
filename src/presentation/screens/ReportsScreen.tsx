@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CaloriesChart, MacroBar, MacroDonut, OfflineBanner } from '../components';
 import { useNutritionReport } from '../hooks/useNutritionReport';
 import { useAuthStore, useGoalStore, useUIStore } from '../store';
+import { GUEST_USER_ID } from '../../domain/constants/defaultGoals';
 import { AppColors, useAppTheme } from '../theme';
 
 const shiftPeriod = (iso: string, period: ReportPeriod, amount: number) => {
@@ -46,7 +47,7 @@ export function ReportsScreen() {
   const { data: report, isLoading, error, refetch } = useNutritionReport(selectedDate, period);
 
   useEffect(() => {
-    loadGoals(user?.id || 'default_user');
+    loadGoals(user?.id || GUEST_USER_ID);
   }, [loadGoals, user?.id]);
 
   const effectiveChartDate =
