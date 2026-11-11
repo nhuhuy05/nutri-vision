@@ -1,4 +1,4 @@
-import * as SQLite from 'expo-sqlite';
+import type * as SQLite from 'expo-sqlite';
 import { VIETNAMESE_FOODS_DATA } from './vietnameseFoods';
 import { DEFAULT_GOALS } from '../../../../domain/constants/defaultGoals';
 
@@ -289,7 +289,28 @@ export async function runMigrations(db: SQLite.SQLiteDatabase): Promise<void> {
       value      TEXT NOT NULL,
       updated_at INTEGER NOT NULL
     );
+  `);
 
+  // Bổ sung an toàn các cột mới nếu người dùng chạy trên CSDL cũ trước khi tạo Index
+  const safeColumns = [
+    'ALTER TABLE foods ADD COLUMN barcode TEXT;',
+    'ALTER TABLE foods ADD COLUMN ai_class_label TEXT;',
+    'ALTER TABLE foods ADD COLUMN seed_version INTEGER;',
+    'ALTER TABLE meals ADD COLUMN photo_remote_path TEXT;',
+    'ALTER TABLE meals ADD COLUMN note TEXT;',
+    'ALTER TABLE meal_items ADD COLUMN ai_scan_id TEXT;',
+    'ALTER TABLE meal_items ADD COLUMN ai_confidence REAL;',
+    'ALTER TABLE meal_items ADD COLUMN is_user_edited INTEGER NOT NULL DEFAULT 0;',
+  ];
+  for (const alterSql of safeColumns) {
+    try {
+      await db.execAsync(alterSql);
+    } catch {
+      // Cột đã tồn tại hoặc bảng chưa tạo, bỏ qua an toàn
+    }
+  }
+
+  await db.execAsync(`
     -- =====================================================================
     -- INDEXES
     -- =====================================================================

@@ -12,7 +12,11 @@ export * from './datasources/remote/MealLogRemoteDataSource';
 export * from './datasources/remote/AuthRemoteDataSource';
 export * from './datasources/remote/ProfileRemoteDataSource';
 
-export * from './datasources/ai/TFLiteClassifier';
+// AI Subsystem
+export * from './datasources/ai/contracts/IFoodClassifierEngine';
+export * from './datasources/ai/engines/GeminiVisionEngine';
+export * from './datasources/ai/engines/TFLiteEngine';
+export * from './datasources/ai/RecognitionStrategy';
 export * from './datasources/ai/ImagePreprocessor';
 
 // Infrastructure

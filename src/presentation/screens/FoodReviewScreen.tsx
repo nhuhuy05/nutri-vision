@@ -27,7 +27,12 @@ const MEAL_TYPES: { type: MealType; label: string }[] = [
 
 export function FoodReviewScreen() {
   const { colors } = useAppTheme();
-  const params = useLocalSearchParams<{ foodId?: string; photoUri?: string }>();
+  const params = useLocalSearchParams<{
+    foodId?: string;
+    photoUri?: string;
+    suggestedGrams?: string;
+    foodJson?: string;
+  }>();
   const { user } = useAuthStore();
   const { selectedDate } = useUIStore();
   const { addMeal } = useDiary(selectedDate);
@@ -39,11 +44,28 @@ export function FoodReviewScreen() {
 
   useEffect(() => {
     async function fetchFood() {
+      if (params.foodJson) {
+        try {
+          const parsed = JSON.parse(params.foodJson) as FoodItem;
+          setFood(parsed);
+          const initialGrams = params.suggestedGrams
+            ? Number(params.suggestedGrams)
+            : parsed.servingWeightGrams || 100;
+          setCurrentGrams(initialGrams);
+          return;
+        } catch {
+          // Fall back to foodId lookup
+        }
+      }
+
       if (params.foodId) {
         const result = await getFoodByIdUseCase.execute(params.foodId);
         if (result.success && result.data) {
           setFood(result.data);
-          setCurrentGrams(result.data.servingWeightGrams || 100);
+          const initialGrams = params.suggestedGrams
+            ? Number(params.suggestedGrams)
+            : result.data.servingWeightGrams || 100;
+          setCurrentGrams(initialGrams);
           return;
         }
       }
@@ -55,7 +77,7 @@ export function FoodReviewScreen() {
       }
     }
     fetchFood();
-  }, [params.foodId]);
+  }, [params.foodId, params.foodJson, params.suggestedGrams]);
 
   const portionMultiplier = useMemo(() => {
     if (!food || !food.servingWeightGrams || food.servingWeightGrams <= 0) {

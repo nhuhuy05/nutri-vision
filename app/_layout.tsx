@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { getDatabase } from '@/data/datasources/local/db/connection';
 import { COLORS } from '@/presentation/theme';
@@ -11,20 +11,55 @@ import { NotificationProvider } from '@/presentation/components';
 
 export default function RootLayout() {
   const [isReady, setIsReady] = useState(false);
+  const [initError, setInitError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
     async function bootstrap() {
       try {
         await getDatabase();
         await useAuthStore.getState().checkSession();
+        if (isMounted) {
+          setInitError(null);
+          setIsReady(true);
+        }
       } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
         console.error('App bootstrap error:', e);
-      } finally {
-        setIsReady(true);
+        if (isMounted) {
+          setInitError(msg);
+        }
       }
     }
-    bootstrap();
+
+    void bootstrap();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [retryKey]);
+
+  const handleRetry = useCallback(() => {
+    setInitError(null);
+    setIsReady(false);
+    setRetryKey((prev) => prev + 1);
   }, []);
+
+  if (initError) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={styles.errorTitle}>Không thể khởi tạo cơ sở dữ liệu cục bộ</Text>
+        <Text style={styles.errorDetail}>{initError}</Text>
+        <Text style={styles.errorHint}>
+          Nếu bạn vừa Reload ứng dụng trên Expo Go, hãy đóng hẳn (Force Stop) ứng dụng Expo Go trên máy ảo rồi mở lại.
+        </Text>
+        <TouchableOpacity style={styles.retryButton} onPress={handleRetry} activeOpacity={0.8}>
+          <Text style={styles.retryButtonText}>Thử lại</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (!isReady) {
     return (
@@ -73,11 +108,43 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.background,
+    paddingHorizontal: 28,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 14,
     color: COLORS.textSecondary,
     fontWeight: '500',
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  errorDetail: {
+    fontSize: 13,
+    color: COLORS.danger,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  errorHint: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });

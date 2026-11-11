@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   loadSavedEmail: async () => {
     try {
-      const saved = await secureSessionStorage.getItem('@nutrivision_saved_email');
+      const saved = await secureSessionStorage.getItem('nutrivision_saved_email');
       set({ savedEmail: saved || '' });
     } catch {
       set({ savedEmail: '' });
@@ -76,9 +76,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const result = await signInUseCase.execute(email, password);
     if (result.success) {
       if (rememberMe) {
-        await secureSessionStorage.setItem('@nutrivision_saved_email', email);
+        await secureSessionStorage.setItem('nutrivision_saved_email', email);
       } else {
-        await secureSessionStorage.removeItem('@nutrivision_saved_email');
+        await secureSessionStorage.removeItem('nutrivision_saved_email');
       }
 
       const sessionUser = result.data.user;

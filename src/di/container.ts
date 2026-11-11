@@ -10,7 +10,9 @@ import { AuthRemoteDataSource } from '../data/datasources/remote/AuthRemoteDataS
 import { ProfileRemoteDataSource } from '../data/datasources/remote/ProfileRemoteDataSource';
 
 // AI DataSources
-import { TFLiteClassifier } from '../data/datasources/ai/TFLiteClassifier';
+import { GeminiVisionEngine } from '../data/datasources/ai/engines/GeminiVisionEngine';
+import { TFLiteEngine } from '../data/datasources/ai/engines/TFLiteEngine';
+import { RecognitionStrategy } from '../data/datasources/ai/RecognitionStrategy';
 
 // Infrastructure
 import { NetworkInfo } from '../data/infrastructure/NetworkInfo';
@@ -57,8 +59,14 @@ export const mealLogRemoteDataSource = new MealLogRemoteDataSource();
 export const authRemoteDataSource = new AuthRemoteDataSource();
 export const profileRemoteDataSource = new ProfileRemoteDataSource();
 
-export const tfliteClassifier = new TFLiteClassifier();
 export const networkInfo = new NetworkInfo();
+export const geminiVisionEngine = new GeminiVisionEngine();
+export const tfliteEngine = new TFLiteEngine();
+export const recognitionStrategy = new RecognitionStrategy(
+  geminiVisionEngine,
+  tfliteEngine,
+  networkInfo
+);
 
 // 2. Repositories
 export const foodRepository = new FoodRepositoryImpl(foodLocalDataSource);
@@ -72,7 +80,7 @@ export const syncRepository = new SyncRepositoryImpl(
   syncMetaLocalDataSource
 );
 export const foodRecognitionRepository = new FoodRecognitionRepositoryImpl(
-  tfliteClassifier,
+  recognitionStrategy,
   foodLocalDataSource
 );
 
