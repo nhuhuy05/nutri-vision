@@ -1,0 +1,47 @@
+name: Tự động Đóng gói & Phát hành APK
+
+on:
+  push:
+    tags:
+      - 'v*' # Tự động kích hoạt khi bạn tạo tag phiên bản (ví dụ v1.0.0, v1.0.1)
+  workflow_dispatch: # Hoặc cho phép bạn bấm nút "Run workflow" bằng tay trên web GitHub
+
+jobs:
+  build-and-release:
+    name: Build APK & Tạo GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout Mã nguồn
+        uses: actions/checkout@v4
+
+      - name: 🟢 Cài đặt Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Cài đặt Dependencies
+        run: npm ci
+
+      - name: 🔍 Kiểm tra Typecheck & ESLint
+        run: npm run check
+
+      - name: 🚀 Cài đặt EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📱 Tự động Đóng gói APK (EAS Build Preview)
+        run: |
+          npx eas build -p android --profile preview --non-interactive
+
+      - name: 🏷️ Tạo GitHub Release & Đăng tải APK
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          name: Bản phát hành ${{ github.ref_name }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
