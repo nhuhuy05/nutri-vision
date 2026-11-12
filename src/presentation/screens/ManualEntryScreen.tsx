@@ -11,13 +11,21 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Image,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAppTheme, AppColors } from '../theme';
 import { FoodItem } from '../../domain/entities/FoodItem';
 import { MealType } from '../../domain/entities/MealType';
-import { getAllFoodsUseCase, searchFoodsUseCase, createCustomFoodUseCase } from '../../di/container';
+import { RecognitionResult } from '../../domain/entities/RecognitionResult';
+import {
+  getAllFoodsUseCase,
+  searchFoodsUseCase,
+  createCustomFoodUseCase,
+  recognizeDishUseCase,
+} from '../../di/container';
 import { useAuthStore } from '../store/authStore';
 import { notify } from '../utils/notify';
 
@@ -40,6 +48,10 @@ export function ManualEntryScreen() {
   const [customProtein, setCustomProtein] = useState('0');
   const [customCarbs, setCustomCarbs] = useState('0');
   const [customFat, setCustomFat] = useState('0');
+  const [customPhotoUri, setCustomPhotoUri] = useState('');
+  const [isAnalyzingCustomPhoto, setIsAnalyzingCustomPhoto] = useState(false);
+  const [customAiSuggestion, setCustomAiSuggestion] = useState<string | null>(null);
+  const [customCandidates, setCustomCandidates] = useState<RecognitionResult[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const fetchFoods = useCallback(async (query: string) => {
@@ -95,7 +107,95 @@ export function ManualEntryScreen() {
     setCustomProtein('0');
     setCustomCarbs('0');
     setCustomFat('0');
+    setCustomPhotoUri('');
+    setCustomAiSuggestion(null);
+    setCustomCandidates([]);
+    setIsAnalyzingCustomPhoto(false);
     setIsCreateModalVisible(true);
+  };
+
+  const handlePickCustomImage = async (useCamera: boolean) => {
+    try {
+      const permission = useCamera
+        ? await ImagePicker.requestCameraPermissionsAsync()
+        : await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (!permission.granted) {
+        notify.warning('Quyền truy cập', 'Vui lòng cấp quyền để chụp hoặc chọn ảnh từ thiết bị.');
+        return;
+      }
+
+      const result = useCamera
+        ? await ImagePicker.launchCameraAsync({
+            mediaTypes: ['images'],
+            quality: 0.8,
+            allowsEditing: true,
+            aspect: [4, 3],
+            base64: true,
+          })
+        : await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ['images'],
+            quality: 0.8,
+            allowsEditing: true,
+            aspect: [4, 3],
+            base64: true,
+          });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const asset = result.assets[0];
+        setCustomPhotoUri(asset.uri);
+        const imagePayload = asset.base64 ? `data:image/jpeg;base64,${asset.base64}` : asset.uri;
+
+        // Tự động phân tích ảnh và ước tính các chất dinh dưỡng
+        setIsAnalyzingCustomPhoto(true);
+        setCustomAiSuggestion(null);
+        setCustomCandidates([]);
+        try {
+          const aiResult = await recognizeDishUseCase.execute(imagePayload);
+          if (aiResult.success && aiResult.data.length > 0) {
+            const top = aiResult.data[0];
+            setCustomCandidates(aiResult.data);
+            setCustomAiSuggestion(
+              `✨ AI nhận diện: "${top.food.name}". Đã tự động tính calo và các chất, bạn có thể chỉnh sửa thủ công bên dưới.`
+            );
+            if (!customName.trim()) {
+              setCustomName(top.food.name);
+            }
+            setCustomCalories(String(top.food.calories));
+            setCustomServing(top.food.servingUnit || '1 khẩu phần');
+            setCustomGrams(String(top.food.servingWeightGrams || 100));
+            setCustomProtein(String(top.food.protein));
+            setCustomCarbs(String(top.food.carbs));
+            setCustomFat(String(top.food.fat));
+          } else {
+            setCustomAiSuggestion(
+              'Không tự động tính được dinh dưỡng từ ảnh. Bạn vui lòng tự nhập các chỉ số bên dưới.'
+            );
+          }
+        } catch {
+          setCustomAiSuggestion(
+            'Chưa thể tự động tính chất từ ảnh lúc này. Bạn vui lòng tự nhập các chỉ số bên dưới.'
+          );
+        } finally {
+          setIsAnalyzingCustomPhoto(false);
+        }
+      }
+    } catch {
+      notify.error('Lỗi', 'Không thể mở máy ảnh hoặc thư viện ảnh.');
+    }
+  };
+
+  const handleApplyCustomCandidate = (candidate: RecognitionResult) => {
+    setCustomName(candidate.food.name);
+    setCustomCalories(String(candidate.food.calories));
+    setCustomServing(candidate.food.servingUnit || '1 khẩu phần');
+    setCustomGrams(String(candidate.food.servingWeightGrams || 100));
+    setCustomProtein(String(candidate.food.protein));
+    setCustomCarbs(String(candidate.food.carbs));
+    setCustomFat(String(candidate.food.fat));
+    setCustomAiSuggestion(
+      `✨ Đã áp dụng thông tin của "${candidate.food.name}". Bạn có thể chỉnh sửa thêm bên dưới.`
+    );
   };
 
   const handleSaveCustomFood = async () => {
@@ -136,8 +236,16 @@ export function ManualEntryScreen() {
         notify.toast('Đã tạo món ăn thành công! 🎉');
         // Refresh list
         void fetchFoods(keyword);
-        // Chuyển luôn sang Review để người dùng lưu vào nhật ký
-        handleSelectFood(result.data);
+        // Chuyển luôn sang Review kèm ảnh trên thiết bị để người dùng lưu vào nhật ký
+        router.push({
+          pathname: '/modal/food-review',
+          params: {
+            foodId: result.data.id,
+            defaultMealType: params.defaultMealType,
+            photoUri: customPhotoUri || undefined,
+            foodJson: JSON.stringify(result.data),
+          },
+        });
       } else {
         notify.error('Lỗi tạo món', result.error.message);
       }
@@ -264,6 +372,98 @@ export function ManualEntryScreen() {
             </View>
 
             <ScrollView contentContainerStyle={styles.modalScroll}>
+              <View>
+                <Text style={styles.inputLabel}>📸 Ảnh món ăn (Chụp/chọn ảnh để AI tự tính các chất)</Text>
+                {customPhotoUri ? (
+                  <View style={styles.photoContainer}>
+                    <Image source={{ uri: customPhotoUri }} style={styles.photoPreview} />
+                    <View style={styles.photoActions}>
+                      <TouchableOpacity
+                        style={styles.photoBtn}
+                        onPress={() => handlePickCustomImage(false)}
+                      >
+                        <Ionicons name="images-outline" size={16} color={colors.primary} />
+                        <Text style={styles.photoBtnText}>Đổi ảnh</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.photoBtn}
+                        onPress={() => handlePickCustomImage(true)}
+                      >
+                        <Ionicons name="camera-outline" size={16} color={colors.primary} />
+                        <Text style={styles.photoBtnText}>Chụp lại</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.photoBtn, styles.photoBtnDanger]}
+                        onPress={() => {
+                          setCustomPhotoUri('');
+                          setCustomAiSuggestion(null);
+                          setCustomCandidates([]);
+                        }}
+                      >
+                        <Ionicons name="trash-outline" size={16} color={colors.danger} />
+                        <Text style={[styles.photoBtnText, { color: colors.danger }]}>Xóa</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.pickImageRow}>
+                    <TouchableOpacity
+                      style={styles.pickImageBtn}
+                      onPress={() => handlePickCustomImage(false)}
+                    >
+                      <Ionicons name="images-outline" size={20} color={colors.primary} />
+                      <Text style={styles.pickImageText}>Chọn từ thư viện</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.pickImageBtn}
+                      onPress={() => handlePickCustomImage(true)}
+                    >
+                      <Ionicons name="camera-outline" size={20} color={colors.primary} />
+                      <Text style={styles.pickImageText}>Chụp ảnh</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
+
+              {isAnalyzingCustomPhoto && (
+                <View style={styles.aiAnalyzingBox}>
+                  <ActivityIndicator size="small" color={colors.primary} />
+                  <Text style={styles.aiAnalyzingText}>
+                    ✨ AI đang nhận diện món & tính toán các chất dinh dưỡng...
+                  </Text>
+                </View>
+              )}
+
+              {customAiSuggestion && !isAnalyzingCustomPhoto && (
+                <View style={styles.aiSuggestionBox}>
+                  <Ionicons name="sparkles" size={16} color={colors.primary} />
+                  <Text style={styles.aiSuggestionText}>{customAiSuggestion}</Text>
+                </View>
+              )}
+
+              {customCandidates.length > 1 && !isAnalyzingCustomPhoto && (
+                <View style={styles.candidatesRow}>
+                  <Text style={styles.candidatesLabel}>Gợi ý món khác từ ảnh:</Text>
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.candidatesScroll}
+                  >
+                    {customCandidates.slice(1).map((c) => (
+                      <TouchableOpacity
+                        key={c.food.id}
+                        style={styles.candidateChip}
+                        onPress={() => handleApplyCustomCandidate(c)}
+                      >
+                        <Text style={styles.candidateChipText}>
+                          {c.food.name} ({c.food.calories} kcal)
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
+
               <Text style={styles.inputLabel}>Tên món ăn (*)</Text>
               <TextInput
                 style={styles.modalInput}
@@ -549,6 +749,127 @@ const createStyles = (colors: AppColors) =>
     macroRow: {
       flexDirection: 'row',
       gap: 8,
+    },
+    photoContainer: {
+      backgroundColor: colors.inputBg,
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 8,
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 4,
+    },
+    photoPreview: {
+      width: '100%',
+      height: 140,
+      borderRadius: 8,
+      resizeMode: 'cover',
+    },
+    photoActions: {
+      flexDirection: 'row',
+      gap: 8,
+      width: '100%',
+      justifyContent: 'center',
+    },
+    photoBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingVertical: 6,
+      paddingHorizontal: 10,
+      borderRadius: 8,
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    photoBtnDanger: {
+      borderColor: colors.danger,
+    },
+    photoBtnText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primaryDark,
+    },
+    pickImageRow: {
+      flexDirection: 'row',
+      gap: 10,
+      marginTop: 4,
+    },
+    pickImageBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      backgroundColor: colors.card,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      borderStyle: 'dashed',
+      borderRadius: 10,
+      paddingVertical: 12,
+    },
+    pickImageText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primaryDark,
+    },
+    aiAnalyzingBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.primaryLight,
+      padding: 10,
+      borderRadius: 10,
+      marginTop: 8,
+      gap: 8,
+    },
+    aiAnalyzingText: {
+      fontSize: 12,
+      color: colors.primaryDark,
+      fontWeight: '600',
+      flex: 1,
+    },
+    aiSuggestionBox: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      backgroundColor: colors.primaryLight,
+      padding: 10,
+      borderRadius: 10,
+      marginTop: 8,
+      gap: 6,
+    },
+    aiSuggestionText: {
+      fontSize: 12,
+      color: colors.primaryDark,
+      lineHeight: 17,
+      flex: 1,
+      fontWeight: '500',
+    },
+    candidatesRow: {
+      marginTop: 8,
+    },
+    candidatesLabel: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      fontWeight: '600',
+      marginBottom: 4,
+    },
+    candidatesScroll: {
+      flexDirection: 'row',
+      gap: 6,
+    },
+    candidateChip: {
+      backgroundColor: colors.card,
+      borderColor: colors.border,
+      borderWidth: 1,
+      borderRadius: 16,
+      paddingHorizontal: 10,
+      paddingVertical: 5,
+    },
+    candidateChipText: {
+      fontSize: 11,
+      color: colors.primaryDark,
+      fontWeight: '600',
     },
     saveBtn: {
       backgroundColor: colors.primary,

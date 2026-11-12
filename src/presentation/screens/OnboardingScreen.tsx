@@ -129,6 +129,20 @@ export function OnboardingScreen() {
 
   const handleCompleteSetup = async () => {
     try {
+      const bodyStats = {
+        gender,
+        age,
+        heightCm,
+        weightKg,
+        targetWeightKg,
+        activityLevel,
+        goal,
+        bmr: calculations.bmr,
+        tdee: calculations.tdee,
+        bmi: calculations.bmi,
+        selectedDiets,
+      };
+      await AsyncStorage.setItem('@nutrivision_user_body_stats', JSON.stringify(bodyStats));
       await AsyncStorage.setItem('@nutrivision_has_completed_setup', 'true');
       await updateGoals(
         {

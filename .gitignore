@@ -58,3 +58,7 @@ Desktop.ini
 
 # Local SQLite databases
 *.db
+
+# Build artifacts
+*.apk
+*.aab

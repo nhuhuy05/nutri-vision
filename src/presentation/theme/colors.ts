@@ -1,30 +1,28 @@
-import { useColorScheme } from 'react-native';
-
 export const LIGHT_COLORS = {
-  primary: '#16803A',
-  primaryDark: '#116B30',
+  primary: '#16A34A',
+  primaryDark: '#15803D',
   primaryLight: '#DCFCE7',
-  neonMint: '#22C55E',
+  neonMint: '#4ADE80',
   neonMintLight: '#BBF7D0',
-  neonMintGlow: 'rgba(34, 197, 94, 0.35)',
-  secondary: '#1D4ED8',
-  accent: '#B45309',
-  danger: '#B91C1C',
-  purple: '#6D28D9',
-  yellow: '#A16207',
-  background: '#F7FAF7',
+  neonMintGlow: 'rgba(74, 222, 128, 0.35)',
+  secondary: '#2563EB',
+  accent: '#F59E0B',
+  danger: '#EF4444',
+  purple: '#8B5CF6',
+  yellow: '#EAB308',
+  background: '#F8FCF8',
   card: '#FFFFFF',
   cardElevated: '#FFFFFF',
-  cardShadow: 'rgba(17, 107, 48, 0.10)',
+  cardShadow: 'rgba(22, 163, 74, 0.10)',
   text: '#111827',
   textSecondary: '#4B5563',
-  textMuted: '#6B7280',
-  border: '#D9E8DC',
-  borderLight: '#EDF4EE',
-  inputBg: '#F7FAF7',
-  success: '#16803A',
-  warning: '#B45309',
-  offline: '#475569',
+  textMuted: '#9CA3AF',
+  border: '#E2EFE4',
+  borderLight: '#F0F8F1',
+  inputBg: '#FAFCFA',
+  success: '#16A34A',
+  warning: '#F59E0B',
+  offline: '#64748B',
   overlay: 'rgba(15, 23, 42, 0.55)',
   inverseText: '#FFFFFF',
 };
@@ -64,6 +62,6 @@ export type AppColors = typeof LIGHT_COLORS;
 export const COLORS = LIGHT_COLORS;
 
 export function useAppTheme() {
-  const isDark = useColorScheme() === 'dark';
-  return { colors: isDark ? DARK_COLORS : LIGHT_COLORS, isDark };
+  // Luôn cố định giao diện nền sáng / trắng tươi sáng chuẩn phong cách NutriVision
+  return { colors: LIGHT_COLORS, isDark: false };
 }

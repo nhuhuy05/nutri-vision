@@ -38,7 +38,7 @@ jobs:
         run: |
           eas build -p android --profile preview --non-interactive --json > build-output.json
           cat build-output.json
-          BUILD_URL=$(jq -r '.[0].artifacts.buildUrl' build-output.json)
+          BUILD_URL=$(jq -r 'if type=="array" then (.[0].artifacts.buildUrl // .[0].artifacts.applicationArchiveUrl) else (.artifacts.buildUrl // .artifacts.applicationArchiveUrl) end' build-output.json)
           echo "APK URL: $BUILD_URL"
           if [ -n "$BUILD_URL" ] && [ "$BUILD_URL" != "null" ]; then
             curl -L -o NutriVision.apk "$BUILD_URL"

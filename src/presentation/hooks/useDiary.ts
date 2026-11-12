@@ -6,6 +6,7 @@ import {
   deleteMealLogUseCase,
 } from '../../di/container';
 import { MealLog } from '../../domain/entities/MealLog';
+import { useSyncStore } from '../store/syncStore';
 
 export function useDiary(date: string) {
   const queryClient = useQueryClient();
@@ -37,6 +38,8 @@ export function useDiary(date: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.mealLogs.all });
       queryClient.invalidateQueries({ queryKey: ['summary'] });
+      // Tự động đồng bộ ngay lên đám mây trong nền nếu có Internet
+      void useSyncStore.getState().autoSyncIfOnline();
     },
   });
 
@@ -51,6 +54,8 @@ export function useDiary(date: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.mealLogs.all });
       queryClient.invalidateQueries({ queryKey: ['summary'] });
+      // Tự động đồng bộ ngay lên đám mây trong nền nếu có Internet
+      void useSyncStore.getState().autoSyncIfOnline();
     },
   });
 

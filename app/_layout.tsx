@@ -7,6 +7,7 @@ import { getDatabase } from '@/data/datasources/local/db/connection';
 import { COLORS } from '@/presentation/theme';
 import { queryClient } from '@/presentation/query';
 import { useAuthStore } from '@/presentation/store/authStore';
+import { useSyncStore } from '@/presentation/store/syncStore';
 import { NotificationProvider } from '@/presentation/components';
 
 export default function RootLayout() {
@@ -20,6 +21,8 @@ export default function RootLayout() {
       try {
         await getDatabase();
         await useAuthStore.getState().checkSession();
+        // Khởi tạo tiến trình tự động đồng bộ khi có kết nối Internet
+        useSyncStore.getState().initAutoSync();
         if (isMounted) {
           setInitError(null);
           setIsReady(true);
