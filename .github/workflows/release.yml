@@ -28,14 +28,13 @@ jobs:
         run: npm run check
 
       - name: 🚀 Cài đặt EAS CLI
-        uses: expo/expo-github-action@v8
-        with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+        run: npm install -g eas-cli
 
       - name: 📱 Tự động Đóng gói APK (EAS Build Preview)
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
         run: |
-          npx eas build -p android --profile preview --non-interactive
+          eas build -p android --profile preview --non-interactive
 
       - name: 🏷️ Tạo GitHub Release & Đăng tải APK
         uses: softprops/action-gh-release@v2
