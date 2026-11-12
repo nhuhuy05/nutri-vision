@@ -9,4 +9,5 @@ export interface IMealLogRepository {
   deleteMealLog(id: string): Promise<Result<void, Failure>>;
   getPendingSyncLogs(): Promise<Result<MealLog[], Failure>>;
   markLogAsSynced(id: string): Promise<Result<void, Failure>>;
+  migrateGuestLogs(targetUserId: string): Promise<Result<number, Failure>>;
 }

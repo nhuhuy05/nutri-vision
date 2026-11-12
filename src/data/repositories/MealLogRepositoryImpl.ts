@@ -63,4 +63,13 @@ export class MealLogRepositoryImpl implements IMealLogRepository {
       return fail(ErrorMapper.toFailure(e));
     }
   }
+
+  async migrateGuestLogs(targetUserId: string): Promise<Result<number, Failure>> {
+    try {
+      const count = await this.localDataSource.migrateGuestLogs(targetUserId);
+      return ok(count);
+    } catch (e) {
+      return fail(ErrorMapper.toFailure(e));
+    }
+  }
 }

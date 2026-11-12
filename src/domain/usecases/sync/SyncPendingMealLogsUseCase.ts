@@ -3,6 +3,7 @@ import { ISyncRepository, SyncStats } from '../../repositories/ISyncRepository';
 import { INetworkInfo } from '../../repositories/INetworkInfo';
 import { Result, ok, fail } from '../../common/Result';
 import { Failure, NetworkFailure } from '../../common/Failure';
+import { GUEST_USER_ID } from '../../constants/defaultGoals';
 
 export class SyncPendingMealLogsUseCase {
   constructor(
@@ -22,9 +23,9 @@ export class SyncPendingMealLogsUseCase {
       return fail(pendingResult.error);
     }
 
-    const pending = pendingResult.data;
+    const pending = pendingResult.data.filter((item) => item.userId !== GUEST_USER_ID);
     if (pending.length === 0) {
-      return ok({ syncedCount: 0, pendingCount: 0 });
+      return ok({ syncedCount: 0, pendingCount: pendingResult.data.length });
     }
 
     return this.syncRepo.syncPendingMealLogs(pending);

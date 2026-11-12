@@ -4,9 +4,7 @@ import { RemoteMealLogDTO } from '../../dto/remote';
 export class MealLogRemoteDataSource {
   async upsertMealLogs(logs: RemoteMealLogDTO[]): Promise<void> {
     if (logs.length === 0) return;
-    const { error } = await supabase.from('meal_logs').upsert(logs, {
-      onConflict: 'id',
-    });
+    const { error } = await supabase.from('meal_logs').insert(logs);
     if (error) {
       throw new Error(`Supabase Upsert Error: ${error.message}`);
     }

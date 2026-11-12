@@ -7,28 +7,42 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '../theme';
+import { useAppTheme } from '../theme/colors';
 import { useAuthStore, useGoalStore } from '../store';
 import { useSync } from '../hooks/useSync';
 import { notify } from '../utils/notify';
 
 export function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useAppTheme();
   const { user, isAuthenticated, logout, updateUserProfile, isLoading: isAuthLoading } = useAuthStore();
   const { goals, updateGoals } = useGoalStore();
-  const { pendingCount, isOnline, syncNow, isSyncing } = useSync();
+  const { pendingCount, syncNow, isSyncing } = useSync();
 
+  // Chỉnh sửa tên hiển thị
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(user?.name || '');
 
-  const [calories, setCalories] = useState(String(goals.calories));
-  const [protein, setProtein] = useState(String(goals.protein));
-  const [carbs, setCarbs] = useState(String(goals.carbs));
-  const [fat, setFat] = useState(String(goals.fat));
+  // Modal chỉnh sửa mục tiêu calo
+  const [isGoalModalVisible, setIsGoalModalVisible] = useState(false);
+  const [caloriesInput, setCaloriesInput] = useState(String(goals.calories));
+
+  const handleOpenGoalModal = () => {
+    setCaloriesInput(String(goals.calories));
+    setIsGoalModalVisible(true);
+  };
+
+  const handleOpenEditName = () => {
+    setNameInput(user?.name || '');
+    setIsEditingName(true);
+  };
 
   const handleSaveProfileName = async () => {
     if (!nameInput.trim()) {
@@ -38,25 +52,22 @@ export function ProfileScreen() {
     const success = await updateUserProfile(nameInput.trim());
     if (success) {
       setIsEditingName(false);
-      notify.success('Thành công', 'Đã cập nhật hồ sơ cá nhân trên Supabase!');
+      notify.toast('Đã cập nhật tên hiển thị');
     } else {
-      notify.error('Thất bại', 'Không thể cập nhật hồ sơ lúc này.');
+      notify.toast('Không thể cập nhật tên lúc này', 'error');
     }
   };
 
   const handleSaveGoals = () => {
-    const c = parseInt(calories, 10);
-    const p = parseInt(protein, 10);
-    const cb = parseInt(carbs, 10);
-    const f = parseInt(fat, 10);
-
-    if (isNaN(c) || isNaN(p) || isNaN(cb) || isNaN(f)) {
-      notify.warning('Lỗi định dạng', 'Vui lòng nhập các chỉ số dinh dưỡng hợp lệ dạng số.');
+    const c = parseInt(caloriesInput, 10);
+    if (isNaN(c) || c <= 0) {
+      notify.warning('Lỗi định dạng', 'Vui lòng nhập lượng Calo hợp lệ.');
       return;
     }
 
-    updateGoals({ calories: c, protein: p, carbs: cb, fat: f });
-    notify.toast('Đã lưu mục tiêu dinh dưỡng cá nhân!');
+    updateGoals({ calories: c });
+    setIsGoalModalVisible(false);
+    notify.toast('Đã cập nhật mục tiêu calo hàng ngày');
   };
 
   const handleLogout = () => {
@@ -74,232 +85,277 @@ export function ProfileScreen() {
     );
   };
 
-  return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: Math.max(insets.top, 16) }]}>
-      {/* Profile Card */}
-      <View style={styles.card}>
-        <View style={styles.avatarRow}>
-          <View style={styles.avatar}>
-            <Ionicons name="person" size={32} color="#FFFFFF" />
+  // =========================================================================
+  // 1. KHI CHƯA ĐĂNG NHẬP (KHÁCH)
+  // =========================================================================
+  if (!isAuthenticated) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.guestWrapper, { paddingTop: Math.max(insets.top + 32, 48) }]}>
+          <View style={[styles.guestCard, { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
+            <View style={[styles.guestAvatarCircle, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name="person-outline" size={36} color={colors.primary} />
+            </View>
+
+            <Text style={[styles.guestTitle, { color: colors.text }]}>Tài khoản cá nhân</Text>
+            <Text style={[styles.guestSubtitle, { color: colors.textSecondary }]}>
+              Đăng nhập để đồng bộ dữ liệu trên nhiều thiết bị.
+            </Text>
+
+            <View style={styles.guestButtonStack}>
+              <TouchableOpacity
+                style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
+                onPress={() => router.push('/(auth)/sign-in')}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.primaryBtnText}>Đăng nhập</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.secondaryBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
+                onPress={() => router.push({ pathname: '/(auth)/sign-in', params: { mode: 'signup' } })}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.secondaryBtnText, { color: colors.text }]}>Đăng ký</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-          <View style={{ flex: 1, marginLeft: 14 }}>
+        </View>
+      </View>
+    );
+  }
+
+  // =========================================================================
+  // 2. KHI ĐÃ ĐĂNG NHẬP (DANH SÁCH CÀI ĐẶT TIÊU CHUẨN)
+  // =========================================================================
+  const getInitials = (name?: string) => {
+    if (!name) return 'U';
+    const parts = name.trim().split(' ');
+    if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+    return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+  };
+
+  const getSyncStatusText = () => {
+    if (isSyncing) return 'Đang đồng bộ...';
+    if (pendingCount > 0) return `${pendingCount} mục chưa sao lưu`;
+    return 'Đã sao lưu';
+  };
+
+  return (
+    <ScrollView
+      style={[styles.container, { backgroundColor: colors.background }]}
+      contentContainerStyle={[styles.content, { paddingTop: Math.max(insets.top + 16, 24) }]}
+    >
+      {/* Hồ sơ cá nhân Header */}
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
+        <View style={styles.userRow}>
+          <View style={[styles.userAvatar, { backgroundColor: colors.primary }]}>
+            <Text style={styles.userInitials}>{getInitials(user?.name)}</Text>
+          </View>
+
+          <View style={styles.userInfo}>
             {isEditingName ? (
               <View style={styles.editNameRow}>
                 <TextInput
-                  style={styles.nameInput}
+                  style={[styles.nameInput, { color: colors.text, borderColor: colors.border }]}
                   value={nameInput}
                   onChangeText={setNameInput}
                   autoFocus
                 />
                 <TouchableOpacity
-                  style={styles.saveNameBtn}
+                  style={[styles.iconActionBtn, { backgroundColor: colors.primary }]}
                   onPress={handleSaveProfileName}
                   disabled={isAuthLoading}
                 >
                   {isAuthLoading ? (
                     <ActivityIndicator size="small" color="#FFFFFF" />
                   ) : (
-                    <Ionicons name="checkmark" size={18} color="#FFFFFF" />
+                    <Ionicons name="checkmark" size={16} color="#FFFFFF" />
                   )}
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={styles.cancelNameBtn}
+                  style={[styles.iconActionBtn, { backgroundColor: colors.borderLight }]}
                   onPress={() => {
                     setNameInput(user?.name || '');
                     setIsEditingName(false);
                   }}
                 >
-                  <Ionicons name="close" size={18} color={COLORS.textSecondary} />
+                  <Ionicons name="close" size={16} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             ) : (
-              <View style={styles.nameHeaderRow}>
-                <Text style={styles.name}>{user?.name || 'Người dùng NutriVision'}</Text>
-                {isAuthenticated && (
-                  <TouchableOpacity
-                    onPress={() => {
-                      setNameInput(user?.name || '');
-                      setIsEditingName(true);
-                    }}
-                    style={styles.editPencilBtn}
-                  >
-                    <Ionicons name="pencil" size={15} color={COLORS.primaryDark} />
-                  </TouchableOpacity>
-                )}
+              <View style={styles.nameRow}>
+                <Text style={[styles.userName, { color: colors.text }]} numberOfLines={1}>
+                  {user?.name || 'Người dùng'}
+                </Text>
+                <TouchableOpacity
+                  onPress={handleOpenEditName}
+                  style={styles.pencilBtn}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Ionicons name="pencil" size={15} color={colors.textSecondary} />
+                </TouchableOpacity>
               </View>
             )}
 
-            <Text style={styles.email}>{user?.email || 'Chưa đăng nhập'}</Text>
+            <Text style={[styles.userEmail, { color: colors.textSecondary }]} numberOfLines={1}>
+              {user?.email || ''}
+            </Text>
+          </View>
+        </View>
+      </View>
 
-            <View style={styles.roleBadge}>
-              <Text style={styles.roleText}>
-                {isAuthenticated ? 'Tài khoản Supabase' : 'Chế độ Khách (Offline)'}
+      {/* Cài đặt & Mục tiêu Group */}
+      <Text style={[styles.sectionHeading, { color: colors.textSecondary }]}>CÀI ĐẶT & MỤC TIÊU</Text>
+      <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.borderLight, paddingVertical: 0 }]}>
+        {/* Dòng 1: Mục tiêu Calo hàng ngày */}
+        <TouchableOpacity
+          style={[styles.settingRow, { borderBottomColor: colors.borderLight }]}
+          onPress={handleOpenGoalModal}
+          activeOpacity={0.7}
+        >
+          <View style={styles.settingLeft}>
+            <View style={[styles.settingIconWrap, { backgroundColor: colors.primaryLight }]}>
+              <Ionicons name="flame-outline" size={18} color={colors.primary} />
+            </View>
+            <View>
+              <Text style={[styles.settingTitle, { color: colors.text }]}>Mục tiêu calo hàng ngày</Text>
+              <Text style={[styles.settingSubtitle, { color: colors.textSecondary }]}>
+                Bấm để chỉnh sửa hoặc tính lại TDEE
               </Text>
             </View>
           </View>
-        </View>
-
-        {!isAuthenticated && (
-          <TouchableOpacity
-            style={styles.signInPromptBtn}
-            onPress={() => router.push('/(auth)/sign-in')}
-          >
-            <Ionicons name="log-in-outline" size={18} color="#FFFFFF" />
-            <Text style={styles.signInPromptText}>Đăng nhập để đồng bộ đám mây</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Target Goals Form */}
-      <View style={styles.card}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={styles.sectionTitle}>🎯 Thiết lập mục tiêu hàng ngày</Text>
-          <TouchableOpacity
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              backgroundColor: COLORS.primaryLight,
-              paddingHorizontal: 8,
-              paddingVertical: 4,
-              borderRadius: 8,
-              gap: 4,
-            }}
-            onPress={() => router.push('/(auth)/onboarding')}
-          >
-            <Ionicons name="sparkles" size={13} color={COLORS.primary} />
-            <Text style={{ fontSize: 11, fontWeight: '700', color: COLORS.primaryDark }}>
-              AI Setup
-            </Text>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.sectionDesc}>
-          Cập nhật mục tiêu năng lượng và tỷ lệ dinh dưỡng phù hợp với thể trạng
-        </Text>
-
-        <View style={styles.formRow}>
-          <Text style={styles.formLabel}>Calo (kcal)</Text>
-          <TextInput
-            style={styles.input}
-            value={calories}
-            onChangeText={setCalories}
-            keyboardType="numeric"
-          />
-        </View>
-
-        <View style={styles.formRow}>
-          <Text style={styles.formLabel}>Chất đạm (g Protein)</Text>
-          <TextInput
-            style={styles.input}
-            value={protein}
-            onChangeText={setProtein}
-            keyboardType="numeric"
-          />
-        </View>
-
-        <View style={styles.formRow}>
-          <Text style={styles.formLabel}>Tinh bột (g Carbs)</Text>
-          <TextInput
-            style={styles.input}
-            value={carbs}
-            onChangeText={setCarbs}
-            keyboardType="numeric"
-          />
-        </View>
-
-        <View style={styles.formRow}>
-          <Text style={styles.formLabel}>Chất béo (g Fat)</Text>
-          <TextInput
-            style={styles.input}
-            value={fat}
-            onChangeText={setFat}
-            keyboardType="numeric"
-          />
-        </View>
-
-        <TouchableOpacity style={styles.saveBtn} onPress={handleSaveGoals}>
-          <Text style={styles.saveBtnText}>Lưu mục tiêu mới</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Exploration & Onboarding */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>✨ Giới thiệu & Trợ giúp</Text>
-        <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingVertical: 12,
-            borderBottomWidth: 1,
-            borderBottomColor: COLORS.borderLight,
-          }}
-          onPress={() => router.push('/(auth)/welcome')}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Ionicons name="sparkles" size={18} color={COLORS.primary} />
-            <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.text }}>
-              Xem lại giới thiệu NutriVision AI (3 slide)
-            </Text>
+          <View style={styles.settingRight}>
+            <Text style={[styles.settingValue, { color: colors.primary }]}>{goals.calories} kcal</Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
           </View>
-          <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingTop: 12,
-          }}
-          onPress={() => router.push('/(auth)/onboarding')}
-        >
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Ionicons name="calculator-outline" size={18} color={COLORS.primary} />
-            <Text style={{ fontSize: 14, fontWeight: '600', color: COLORS.text }}>
-              Thiết lập lại thể trạng & Mục tiêu (Mifflin-St Jeor)
-            </Text>
+        {/* Dòng 2: Đồng bộ dữ liệu đám mây */}
+        <View style={styles.settingRow}>
+          <View style={styles.settingLeft}>
+            <View style={[styles.settingIconWrap, { backgroundColor: pendingCount > 0 ? '#FEF3C7' : colors.primaryLight }]}>
+              <Ionicons
+                name="cloud-outline"
+                size={18}
+                color={pendingCount > 0 ? '#D97706' : colors.primary}
+              />
+            </View>
+            <View>
+              <Text style={[styles.settingTitle, { color: colors.text }]}>Đồng bộ đám mây</Text>
+              <Text
+                style={[
+                  styles.settingSubtitle,
+                  { color: pendingCount > 0 ? '#D97706' : colors.textSecondary },
+                ]}
+              >
+                {getSyncStatusText()}
+              </Text>
+            </View>
           </View>
-          <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
-        </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.inlineSyncBtn,
+              { backgroundColor: colors.primaryLight },
+              isSyncing && { opacity: 0.6 },
+            ]}
+            onPress={syncNow}
+            disabled={isSyncing}
+            activeOpacity={0.8}
+          >
+            {isSyncing ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <>
+                <Ionicons name="sync" size={14} color={colors.primary} />
+                <Text style={[styles.inlineSyncBtnText, { color: colors.primary }]}>Đồng bộ ngay</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {/* System & Offline Status */}
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>⚙️ Trạng thái đồng bộ & Bộ nhớ</Text>
+      {/* Nút Đăng xuất */}
+      <TouchableOpacity
+        style={[styles.logoutBtn, { borderColor: '#FEE2E2', backgroundColor: '#FEF2F2' }]}
+        onPress={handleLogout}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="log-out-outline" size={18} color="#DC2626" />
+        <Text style={styles.logoutBtnText}>Đăng xuất</Text>
+      </TouchableOpacity>
 
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>Trạng thái mạng:</Text>
-          <Text style={{ fontWeight: '600', color: isOnline ? COLORS.primary : COLORS.danger }}>
-            {isOnline ? 'Đang kết nối' : 'Ngoại tuyến'}
-          </Text>
-        </View>
-
-        <View style={styles.statusRow}>
-          <Text style={styles.statusLabel}>Bản ghi SQLite chờ đồng bộ:</Text>
-          <Text style={{ fontWeight: '600', color: COLORS.text }}>
-            {pendingCount} bản ghi
-          </Text>
-        </View>
-
-        <TouchableOpacity
-          style={[styles.syncBtn, (!isOnline || pendingCount === 0) && styles.syncBtnDisabled]}
-          onPress={syncNow}
-          disabled={!isOnline || isSyncing}
+      {/* Modal Chỉnh sửa Mục tiêu Calo */}
+      <Modal
+        visible={isGoalModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setIsGoalModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.modalOverlay}
         >
-          <Ionicons name="sync" size={16} color="#FFFFFF" />
-          <Text style={styles.syncBtnText}>
-            {isSyncing ? 'Đang đồng bộ...' : 'Đồng bộ ngay lên Supabase'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <View style={[styles.modalCard, { backgroundColor: colors.card, borderColor: colors.borderLight }]}>
+            <View style={styles.modalHeader}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Mục tiêu calo hàng ngày</Text>
+              <TouchableOpacity onPress={() => setIsGoalModalVisible(false)}>
+                <Ionicons name="close" size={22} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
 
-      {/* Logout */}
-      {isAuthenticated && (
-        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={18} color={COLORS.danger} />
-          <Text style={styles.logoutText}>Đăng xuất tài khoản</Text>
-        </TouchableOpacity>
-      )}
+            <Text style={[styles.modalDesc, { color: colors.textSecondary }]}>
+              Nhập mức calo bạn muốn đạt mỗi ngày hoặc tính toán lại theo thể trạng khoa học.
+            </Text>
+
+            <View style={styles.modalInputWrap}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Năng lượng mục tiêu (kcal/ngày)</Text>
+              <TextInput
+                style={[
+                  styles.modalInput,
+                  { color: colors.text, borderColor: colors.border, backgroundColor: colors.inputBg },
+                ]}
+                value={caloriesInput}
+                onChangeText={setCaloriesInput}
+                keyboardType="numeric"
+                placeholder="2000"
+                placeholderTextColor={colors.textMuted}
+                autoFocus
+              />
+            </View>
+
+            {/* Shortcut tính lại thể trạng TDEE */}
+            <TouchableOpacity
+              style={[styles.aiCalcBtn, { backgroundColor: colors.primaryLight }]}
+              onPress={() => {
+                setIsGoalModalVisible(false);
+                router.push('/(auth)/onboarding');
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="sparkles" size={16} color={colors.primary} />
+              <Text style={[styles.aiCalcBtnText, { color: colors.primaryDark }]}>
+                Tính toán lại theo thể trạng (TDEE Onboarding)
+              </Text>
+            </TouchableOpacity>
+
+            <View style={styles.modalActionRow}>
+              <TouchableOpacity
+                style={[styles.modalCancelBtn, { borderColor: colors.border }]}
+                onPress={() => setIsGoalModalVisible(false)}
+              >
+                <Text style={[styles.modalCancelBtnText, { color: colors.textSecondary }]}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalSaveBtn, { backgroundColor: colors.primary }]}
+                onPress={handleSaveGoals}
+              >
+                <Text style={styles.modalSaveBtnText}>Lưu thay đổi</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     </ScrollView>
   );
 }
@@ -307,194 +363,299 @@ export function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.background,
   },
   content: {
     padding: 16,
-    paddingBottom: 110,
+    paddingBottom: 40,
+  },
+  guestWrapper: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+  },
+  guestCard: {
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  guestAvatarCircle: {
+    width: 68,
+    height: 68,
+    borderRadius: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+  },
+  guestTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  guestSubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+    paddingHorizontal: 12,
+  },
+  guestButtonStack: {
+    width: '100%',
+    gap: 10,
+  },
+  primaryBtn: {
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryBtnText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  secondaryBtn: {
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  secondaryBtnText: {
+    fontWeight: '700',
+    fontSize: 15,
   },
   card: {
-    backgroundColor: COLORS.card,
-    borderRadius: 14,
+    borderRadius: 16,
     padding: 16,
-    marginBottom: 14,
     borderWidth: 1,
-    borderColor: COLORS.border,
+    marginBottom: 16,
+    shadowColor: '#000',
+    shadowOpacity: 0.03,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 6,
+    elevation: 1,
   },
-  avatarRow: {
+  userRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: COLORS.primary,
+  userAvatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  nameHeaderRow: {
+  userInitials: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '800',
+  },
+  userInfo: {
+    flex: 1,
+    marginLeft: 14,
+  },
+  nameRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
   },
-  name: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
+  userName: {
+    fontSize: 17,
+    fontWeight: '800',
   },
-  editPencilBtn: {
-    padding: 4,
+  pencilBtn: {
+    padding: 2,
+  },
+  userEmail: {
+    fontSize: 13,
+    marginTop: 2,
   },
   editNameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 4,
   },
   nameInput: {
     flex: 1,
-    height: 36,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    borderRadius: 6,
-    paddingHorizontal: 8,
     fontSize: 15,
-    fontWeight: '600',
-    backgroundColor: '#FFFFFF',
-  },
-  saveNameBtn: {
-    backgroundColor: COLORS.primary,
-    padding: 8,
-    borderRadius: 6,
-  },
-  cancelNameBtn: {
-    backgroundColor: '#F1F5F9',
-    padding: 8,
-    borderRadius: 6,
-  },
-  email: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  roleBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.primaryLight,
+    fontWeight: '700',
+    paddingVertical: 4,
     paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    marginTop: 6,
+    borderWidth: 1,
+    borderRadius: 8,
   },
-  roleText: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: COLORS.primaryDark,
-  },
-  signInPromptBtn: {
-    flexDirection: 'row',
+  iconActionBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 6,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.primary,
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 8,
-    marginTop: 14,
   },
-  signInPromptText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  sectionTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  sectionDesc: {
+  sectionHeading: {
     fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-    marginBottom: 14,
-  },
-  formRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
-  },
-  formLabel: {
-    fontSize: 13,
-    color: COLORS.text,
-    fontWeight: '500',
-  },
-  input: {
-    width: 90,
-    height: 36,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    textAlign: 'center',
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    backgroundColor: '#FAFAFA',
-  },
-  saveBtn: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 14,
-  },
-  saveBtnText: {
-    color: '#FFFFFF',
     fontWeight: '700',
-    fontSize: 14,
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginLeft: 4,
   },
-  statusRow: {
+  settingRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderLight,
   },
-  statusLabel: {
-    fontSize: 13,
-    color: COLORS.textSecondary,
-  },
-  syncBtn: {
+  settingLeft: {
     flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  settingIconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.secondary,
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 8,
-    marginTop: 14,
   },
-  syncBtnDisabled: {
-    backgroundColor: COLORS.textMuted,
-  },
-  syncBtnText: {
-    color: '#FFFFFF',
+  settingTitle: {
+    fontSize: 14,
     fontWeight: '600',
-    fontSize: 13,
+  },
+  settingSubtitle: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  settingRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  settingValue: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  inlineSyncBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+  },
+  inlineSyncBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 12,
-    backgroundColor: '#FEE2E2',
-    borderRadius: 10,
     gap: 8,
-    marginTop: 10,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 8,
   },
-  logoutText: {
-    color: COLORS.danger,
+  logoutBtnText: {
+    color: '#DC2626',
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modalTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+  },
+  modalDesc: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  modalInputWrap: {
+    marginBottom: 14,
+  },
+  inputLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  modalInput: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  aiCalcBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    marginBottom: 18,
+  },
+  aiCalcBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  modalActionRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  modalCancelBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  modalCancelBtnText: {
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  modalSaveBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalSaveBtnText: {
+    color: '#FFFFFF',
     fontWeight: '700',
     fontSize: 14,
   },

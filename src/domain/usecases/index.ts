@@ -14,6 +14,7 @@ export * from './auth/SignInUseCase';
 export * from './auth/SignOutUseCase';
 export * from './auth/ResetPasswordUseCase';
 export * from './auth/GetCurrentSessionUseCase';
+export * from './auth/MigrateGuestDataUseCase';
 export * from './profile/GetProfileUseCase';
 export * from './profile/UpdateProfileUseCase';
 export * from './sync/SyncPendingMealLogsUseCase';

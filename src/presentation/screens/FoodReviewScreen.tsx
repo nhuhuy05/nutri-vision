@@ -124,16 +124,16 @@ export function FoodReviewScreen() {
         synced: false,
       });
 
-      notify.success(
-        'Đã lưu thành công! 🎉',
+      notify.toast(
         `Đã thêm ${food.name} vào ${
-          MEAL_TYPES.find((m) => m.type === selectedMealType)?.label
-        }.`,
-        () => router.replace('/(tabs)/diary')
+          MEAL_TYPES.find((m) => m.type === selectedMealType)?.label || 'nhật ký'
+        }`,
+        'success'
       );
+      router.replace('/(tabs)/diary');
     } catch (err) {
       console.error('Save meal error:', err);
-      notify.error('Lỗi', 'Không thể lưu món ăn vào nhật ký.');
+      notify.toast('Không thể lưu món ăn vào nhật ký. Vui lòng thử lại.', 'error');
     } finally {
       setIsSaving(false);
     }

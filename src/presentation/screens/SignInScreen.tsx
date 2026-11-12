@@ -11,14 +11,15 @@ import {
   ScrollView,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../theme';
 import { useAuthStore } from '../store/authStore';
 import { notify } from '../utils/notify';
 
 export function SignInScreen() {
-  const [isSignUpMode, setIsSignUpMode] = useState(false);
+  const params = useLocalSearchParams<{ mode?: string }>();
+  const [isSignUpMode, setIsSignUpMode] = useState(params.mode === 'signup');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

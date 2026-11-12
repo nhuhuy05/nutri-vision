@@ -28,48 +28,46 @@ export class GoalLocalDataSource {
     const targetUserId = userId || GUEST_USER_ID;
     const today = getLocalDateString(nowMs);
 
-    await db.transaction(async (tx) => {
-      await tx
-        .insert(schema.userProfiles)
-        .values({
-          id: targetUserId,
-          isGuest: targetUserId === GUEST_USER_ID ? 1 : 0,
-          name: targetUserId === GUEST_USER_ID ? 'Khách' : 'Người dùng NutriVision',
-          createdAt: nowMs,
-          updatedAt: nowMs,
-        })
-        .onConflictDoNothing();
+    await db
+      .insert(schema.userProfiles)
+      .values({
+        id: targetUserId,
+        isGuest: targetUserId === GUEST_USER_ID ? 1 : 0,
+        name: targetUserId === GUEST_USER_ID ? 'Khách' : 'Người dùng NutriVision',
+        createdAt: nowMs,
+        updatedAt: nowMs,
+      })
+      .onConflictDoNothing();
 
-      await tx
-        .insert(schema.nutritionGoals)
-        .values({
-          id: `goal_${targetUserId}_${today}`,
-          userId: targetUserId,
-          effectiveFrom: today,
+    await db
+      .insert(schema.nutritionGoals)
+      .values({
+        id: `goal_${targetUserId}_${today}`,
+        userId: targetUserId,
+        effectiveFrom: today,
+        calories: data.calories,
+        proteinG: data.protein,
+        carbsG: data.carbs,
+        fatG: data.fat,
+        waterMl: data.waterMl,
+        fiberG: 25,
+        sodiumMg: 2300,
+        source: 'manual',
+        createdAt: nowMs,
+        updatedAt: nowMs,
+        synced: 0,
+      })
+      .onConflictDoUpdate({
+        target: schema.nutritionGoals.id,
+        set: {
           calories: data.calories,
           proteinG: data.protein,
           carbsG: data.carbs,
           fatG: data.fat,
           waterMl: data.waterMl,
-          fiberG: 25,
-          sodiumMg: 2300,
-          source: 'manual',
-          createdAt: nowMs,
           updatedAt: nowMs,
           synced: 0,
-        })
-        .onConflictDoUpdate({
-          target: schema.nutritionGoals.id,
-          set: {
-            calories: data.calories,
-            proteinG: data.protein,
-            carbsG: data.carbs,
-            fatG: data.fat,
-            waterMl: data.waterMl,
-            updatedAt: nowMs,
-            synced: 0,
-          },
-        });
-    });
+        },
+      });
   }
 }

@@ -8,8 +8,12 @@ import {
   getCurrentSessionUseCase,
   getProfileUseCase,
   updateProfileUseCase,
+  migrateGuestDataUseCase,
 } from '../../di/container';
 import { secureSessionStorage } from '../../data/infrastructure/SecureSessionStorage';
+import { useSyncStore } from './syncStore';
+import { queryClient } from '../query/queryClient';
+import { queryKeys } from '../query/queryKeys';
 
 interface AuthState {
   user: UserProfile | null;
@@ -95,6 +99,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isLoading: false,
         savedEmail: rememberMe ? email : '',
       });
+
+      // Tự động chuyển toàn bộ dữ liệu Khách sang User mới & sync lên Cloud
+      try {
+        await migrateGuestDataUseCase.execute(sessionUser.id);
+        await queryClient.invalidateQueries({ queryKey: queryKeys.mealLogs.all });
+        await queryClient.invalidateQueries({ queryKey: ['summary'] });
+        void useSyncStore.getState().syncNow();
+      } catch (err) {
+        console.warn('Auto migration/sync on login failed:', err);
+      }
+
       return true;
     } else {
       set({
@@ -127,6 +142,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
       });
+
+      // Tự động chuyển toàn bộ dữ liệu Khách sang User mới & sync lên Cloud
+      try {
+        await migrateGuestDataUseCase.execute(sessionUser.id);
+        await queryClient.invalidateQueries({ queryKey: queryKeys.mealLogs.all });
+        await queryClient.invalidateQueries({ queryKey: ['summary'] });
+        void useSyncStore.getState().syncNow();
+      } catch (err) {
+        console.warn('Auto migration/sync on register failed:', err);
+      }
+
       return true;
     } else {
       set({
