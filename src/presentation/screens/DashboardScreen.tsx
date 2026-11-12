@@ -14,7 +14,7 @@ import { useAppTheme } from '../theme/colors';
 import { useGoalStore, useAuthStore, useUIStore } from '../store';
 import { useDiary } from '../hooks/useDiary';
 import { useSync } from '../hooks/useSync';
-import { MacroBar, OfflineBanner, CalorieRing } from '../components';
+import { MacroBar, OfflineBanner, CalorieRing, WaterCard } from '../components';
 
 export function DashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -132,6 +132,9 @@ export function DashboardScreen() {
           color={colors.yellow}
         />
       </View>
+
+      {/* Water Tracker Widget */}
+      <WaterCard />
 
       {/* Quick Action Shortcuts */}
       <Text style={[styles.sectionTitle, { color: colors.text }]}>Thao tác nhanh</Text>

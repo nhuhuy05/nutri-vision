@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,13 +12,16 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { COLORS } from '../theme';
+import { useAppTheme, AppColors } from '../theme';
 import { RecognitionResult } from '../../domain/entities/RecognitionResult';
 import { recognizeDishUseCase } from '../../di/container';
 import { notify } from '../utils/notify';
 
 export function ScanScreen() {
   const insets = useSafeAreaInsets();
+  const { colors } = useAppTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [candidates, setCandidates] = useState<RecognitionResult[]>([]);
@@ -96,14 +99,17 @@ export function ScanScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={[styles.content, { paddingTop: Math.max(insets.top, 16) }]}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={[styles.content, { paddingTop: Math.max(insets.top, 16) }]}
+    >
       {/* Photo Preview / Capture Area */}
       <View style={styles.previewBox}>
         {selectedImage ? (
           <Image source={{ uri: selectedImage }} style={styles.previewImage} />
         ) : (
           <View style={styles.placeholderContainer}>
-            <Ionicons name="fast-food-outline" size={64} color={COLORS.textMuted} />
+            <Ionicons name="fast-food-outline" size={64} color={colors.textMuted} />
             <Text style={styles.placeholderText}>
               Chụp ảnh món ăn hoặc chọn từ thư viện để AI nhận diện
             </Text>
@@ -116,6 +122,7 @@ export function ScanScreen() {
         <TouchableOpacity
           style={[styles.cameraBtn, styles.primaryCameraBtn]}
           onPress={() => handlePickImage(true)}
+          activeOpacity={0.8}
         >
           <Ionicons name="camera" size={20} color="#FFFFFF" />
           <Text style={styles.btnTextLight}>Chụp ảnh món</Text>
@@ -124,8 +131,9 @@ export function ScanScreen() {
         <TouchableOpacity
           style={[styles.cameraBtn, styles.secondaryCameraBtn]}
           onPress={() => handlePickImage(false)}
+          activeOpacity={0.8}
         >
-          <Ionicons name="images-outline" size={20} color={COLORS.text} />
+          <Ionicons name="images-outline" size={20} color={colors.text} />
           <Text style={styles.btnTextDark}>Chọn từ máy</Text>
         </TouchableOpacity>
       </View>
@@ -133,7 +141,7 @@ export function ScanScreen() {
       {/* AI Analyzing Indicator */}
       {isAnalyzing && (
         <View style={styles.analyzingBox}>
-          <ActivityIndicator size="small" color={COLORS.primary} />
+          <ActivityIndicator size="small" color={colors.primary} />
           <Text style={styles.analyzingText}>
             AI đang phân tích hình ảnh món ăn...
           </Text>
@@ -155,9 +163,10 @@ export function ScanScreen() {
               key={cand.food.id}
               style={styles.candidateCard}
               onPress={() => handleSelectDish(cand)}
+              activeOpacity={0.7}
             >
               <View style={styles.candidateHeader}>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, paddingRight: 8 }}>
                   <View style={styles.nameRow}>
                     <Text style={styles.dishName}>{cand.food.name}</Text>
                     {idx === 0 && (
@@ -192,166 +201,166 @@ export function ScanScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  content: {
-    padding: 16,
-    paddingBottom: 110,
-  },
-  previewBox: {
-    height: 240,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  previewImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-  },
-  placeholderContainer: {
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  placeholderText: {
-    marginTop: 10,
-    fontSize: 13,
-    color: COLORS.textMuted,
-    textAlign: 'center',
-  },
-  btnRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 14,
-  },
-  cameraBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 8,
-  },
-  primaryCameraBtn: {
-    backgroundColor: COLORS.primary,
-  },
-  secondaryCameraBtn: {
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  btnTextLight: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 14,
-  },
-  btnTextDark: {
-    color: COLORS.text,
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  analyzingBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ECFDF5',
-    padding: 12,
-    borderRadius: 10,
-    marginTop: 16,
-    gap: 8,
-  },
-  analyzingText: {
-    fontSize: 13,
-    color: COLORS.primaryDark,
-    fontWeight: '500',
-  },
-  resultsContainer: {
-    marginTop: 20,
-  },
-  resultTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  resultSubtitle: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-    marginBottom: 12,
-  },
-  candidateCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  candidateHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  nameRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  dishName: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.text,
-  },
-  bestMatchBadge: {
-    backgroundColor: '#FEF3C7',
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  bestMatchText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#D97706',
-  },
-  dishMeta: {
-    fontSize: 12,
-    color: COLORS.textMuted,
-    marginTop: 2,
-  },
-  confidenceBadge: {
-    backgroundColor: COLORS.primaryLight,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  confidenceText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: COLORS.primaryDark,
-  },
-  macroPillRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
-    flexWrap: 'wrap',
-  },
-  macroPill: {
-    fontSize: 11,
-    color: COLORS.textSecondary,
-    backgroundColor: COLORS.background,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-  },
-});
+const createStyles = (colors: AppColors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: 16,
+      paddingBottom: 110,
+    },
+    previewBox: {
+      height: 240,
+      backgroundColor: colors.card,
+      borderRadius: 16,
+      overflow: 'hidden',
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    previewImage: {
+      width: '100%',
+      height: '100%',
+      resizeMode: 'cover',
+    },
+    placeholderContainer: {
+      alignItems: 'center',
+      paddingHorizontal: 24,
+    },
+    placeholderText: {
+      marginTop: 10,
+      fontSize: 13,
+      color: colors.textMuted,
+      textAlign: 'center',
+    },
+    btnRow: {
+      flexDirection: 'row',
+      gap: 12,
+      marginTop: 14,
+    },
+    cameraBtn: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingVertical: 12,
+      borderRadius: 12,
+      gap: 8,
+    },
+    primaryCameraBtn: {
+      backgroundColor: colors.primary,
+    },
+    secondaryCameraBtn: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    btnTextLight: {
+      color: '#FFFFFF',
+      fontWeight: '700',
+      fontSize: 14,
+    },
+    btnTextDark: {
+      color: colors.text,
+      fontWeight: '600',
+      fontSize: 14,
+    },
+    analyzingBox: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.primaryLight,
+      padding: 12,
+      borderRadius: 10,
+      marginTop: 16,
+      gap: 8,
+    },
+    analyzingText: {
+      fontSize: 13,
+      color: colors.primary,
+      fontWeight: '600',
+    },
+    resultsContainer: {
+      marginTop: 20,
+    },
+    resultTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    resultSubtitle: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 2,
+      marginBottom: 12,
+    },
+    candidateCard: {
+      backgroundColor: colors.card,
+      borderRadius: 12,
+      padding: 14,
+      marginBottom: 10,
+      borderWidth: 1,
+      borderColor: colors.borderLight,
+    },
+    candidateHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    nameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    dishName: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    bestMatchBadge: {
+      backgroundColor: '#FEF3C7',
+      paddingHorizontal: 6,
+      paddingVertical: 2,
+      borderRadius: 4,
+    },
+    bestMatchText: {
+      fontSize: 10,
+      fontWeight: '700',
+      color: '#D97706',
+    },
+    dishMeta: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    confidenceBadge: {
+      backgroundColor: colors.primaryLight,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 8,
+    },
+    confidenceText: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    macroPillRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginTop: 10,
+      flexWrap: 'wrap',
+    },
+    macroPill: {
+      fontSize: 11,
+      color: colors.textSecondary,
+      backgroundColor: colors.borderLight,
+      paddingHorizontal: 8,
+      paddingVertical: 4,
+      borderRadius: 6,
+    },
+  });
 
 export default ScanScreen;
-

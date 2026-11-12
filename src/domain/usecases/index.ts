@@ -1,6 +1,7 @@
 export * from './food/GetAllFoodsUseCase';
 export * from './food/SearchFoodsUseCase';
 export * from './food/GetFoodByIdUseCase';
+export * from './food/CreateCustomFoodUseCase';
 export * from './meal/SaveMealLogUseCase';
 export * from './meal/GetMealLogsByDateUseCase';
 export * from './meal/DeleteMealLogUseCase';
@@ -19,3 +20,7 @@ export * from './profile/GetProfileUseCase';
 export * from './profile/UpdateProfileUseCase';
 export * from './sync/SyncPendingMealLogsUseCase';
 export * from './sync/GetPendingSyncCountUseCase';
+export * from './sync/PullRemoteChangesUseCase';
+export * from './water/GetDailyWaterUseCase';
+export * from './water/LogWaterUseCase';
+export * from './water/ResetDailyWaterUseCase';

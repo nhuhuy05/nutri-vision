@@ -3,6 +3,7 @@ import { FoodLocalDataSource } from '../data/datasources/local/FoodLocalDataSour
 import { MealLogLocalDataSource } from '../data/datasources/local/MealLogLocalDataSource';
 import { GoalLocalDataSource } from '../data/datasources/local/GoalLocalDataSource';
 import { SyncMetaLocalDataSource } from '../data/datasources/local/SyncMetaLocalDataSource';
+import { WaterLocalDataSource } from '../data/datasources/local/WaterLocalDataSource';
 
 // Remote DataSources
 import { MealLogRemoteDataSource } from '../data/datasources/remote/MealLogRemoteDataSource';
@@ -21,6 +22,7 @@ import { NetworkInfo } from '../data/infrastructure/NetworkInfo';
 import { FoodRepositoryImpl } from '../data/repositories/FoodRepositoryImpl';
 import { MealLogRepositoryImpl } from '../data/repositories/MealLogRepositoryImpl';
 import { GoalRepositoryImpl } from '../data/repositories/GoalRepositoryImpl';
+import { WaterRepositoryImpl } from '../data/repositories/WaterRepositoryImpl';
 import { AuthRepositoryImpl } from '../data/repositories/AuthRepositoryImpl';
 import { ProfileRepositoryImpl } from '../data/repositories/ProfileRepositoryImpl';
 import { SyncRepositoryImpl } from '../data/repositories/SyncRepositoryImpl';
@@ -30,6 +32,7 @@ import { FoodRecognitionRepositoryImpl } from '../data/repositories/FoodRecognit
 import { GetAllFoodsUseCase } from '../domain/usecases/food/GetAllFoodsUseCase';
 import { SearchFoodsUseCase } from '../domain/usecases/food/SearchFoodsUseCase';
 import { GetFoodByIdUseCase } from '../domain/usecases/food/GetFoodByIdUseCase';
+import { CreateCustomFoodUseCase } from '../domain/usecases/food/CreateCustomFoodUseCase';
 import { SaveMealLogUseCase } from '../domain/usecases/meal/SaveMealLogUseCase';
 import { GetMealLogsByDateUseCase } from '../domain/usecases/meal/GetMealLogsByDateUseCase';
 import { DeleteMealLogUseCase } from '../domain/usecases/meal/DeleteMealLogUseCase';
@@ -49,12 +52,17 @@ import { GetProfileUseCase } from '../domain/usecases/profile/GetProfileUseCase'
 import { UpdateProfileUseCase } from '../domain/usecases/profile/UpdateProfileUseCase';
 import { SyncPendingMealLogsUseCase } from '../domain/usecases/sync/SyncPendingMealLogsUseCase';
 import { GetPendingSyncCountUseCase } from '../domain/usecases/sync/GetPendingSyncCountUseCase';
+import { PullRemoteChangesUseCase } from '../domain/usecases/sync/PullRemoteChangesUseCase';
+import { GetDailyWaterUseCase } from '../domain/usecases/water/GetDailyWaterUseCase';
+import { LogWaterUseCase } from '../domain/usecases/water/LogWaterUseCase';
+import { ResetDailyWaterUseCase } from '../domain/usecases/water/ResetDailyWaterUseCase';
 
 // 1. DataSources & Infrastructure
 export const foodLocalDataSource = new FoodLocalDataSource();
 export const mealLogLocalDataSource = new MealLogLocalDataSource();
 export const goalLocalDataSource = new GoalLocalDataSource();
 export const syncMetaLocalDataSource = new SyncMetaLocalDataSource();
+export const waterLocalDataSource = new WaterLocalDataSource();
 
 export const mealLogRemoteDataSource = new MealLogRemoteDataSource();
 export const authRemoteDataSource = new AuthRemoteDataSource();
@@ -73,6 +81,7 @@ export const recognitionStrategy = new RecognitionStrategy(
 export const foodRepository = new FoodRepositoryImpl(foodLocalDataSource);
 export const mealLogRepository = new MealLogRepositoryImpl(mealLogLocalDataSource);
 export const goalRepository = new GoalRepositoryImpl(goalLocalDataSource);
+export const waterRepository = new WaterRepositoryImpl(waterLocalDataSource);
 export const authRepository = new AuthRepositoryImpl(authRemoteDataSource);
 export const profileRepository = new ProfileRepositoryImpl(profileRemoteDataSource);
 export const syncRepository = new SyncRepositoryImpl(
@@ -89,6 +98,7 @@ export const foodRecognitionRepository = new FoodRecognitionRepositoryImpl(
 export const getAllFoodsUseCase = new GetAllFoodsUseCase(foodRepository);
 export const searchFoodsUseCase = new SearchFoodsUseCase(foodRepository);
 export const getFoodByIdUseCase = new GetFoodByIdUseCase(foodRepository);
+export const createCustomFoodUseCase = new CreateCustomFoodUseCase(foodRepository);
 
 export const saveMealLogUseCase = new SaveMealLogUseCase(mealLogRepository);
 export const getMealLogsByDateUseCase = new GetMealLogsByDateUseCase(mealLogRepository);
@@ -117,3 +127,8 @@ export const syncPendingMealLogsUseCase = new SyncPendingMealLogsUseCase(
   networkInfo
 );
 export const getPendingSyncCountUseCase = new GetPendingSyncCountUseCase(syncRepository);
+export const pullRemoteChangesUseCase = new PullRemoteChangesUseCase(syncRepository, networkInfo);
+
+export const getDailyWaterUseCase = new GetDailyWaterUseCase(waterRepository);
+export const logWaterUseCase = new LogWaterUseCase(waterRepository);
+export const resetDailyWaterUseCase = new ResetDailyWaterUseCase(waterRepository);

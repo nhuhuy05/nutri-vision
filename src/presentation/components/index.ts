@@ -10,3 +10,4 @@ export * from './FoodForm';
 export * from './NutritionCharts';
 export * from './CalorieRing';
 export * from './PortionSlider';
+export * from './WaterCard';

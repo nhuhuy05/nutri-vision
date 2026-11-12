@@ -35,4 +35,13 @@ export class FoodRepositoryImpl implements IFoodRepository {
       return fail(ErrorMapper.toFailure(e));
     }
   }
+
+  async createCustomFood(food: Omit<FoodItem, 'id'>, userId?: string): Promise<Result<FoodItem, Failure>> {
+    try {
+      const row = await this.localDataSource.createCustomFood(food, userId);
+      return ok(toFoodEntity(row));
+    } catch (e) {
+      return fail(ErrorMapper.toFailure(e));
+    }
+  }
 }
