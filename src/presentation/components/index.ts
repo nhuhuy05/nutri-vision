@@ -11,3 +11,4 @@ export * from './NutritionCharts';
 export * from './CalorieRing';
 export * from './PortionSlider';
 export * from './WaterCard';
+export * from './ScanOverlay';
