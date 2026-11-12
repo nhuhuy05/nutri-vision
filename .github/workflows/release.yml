@@ -10,6 +10,8 @@ jobs:
   build-and-release:
     name: Build APK & Tạo GitHub Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: 📥 Checkout Mã nguồn
@@ -39,7 +41,10 @@ jobs:
       - name: 🏷️ Tạo GitHub Release & Đăng tải APK
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           name: Bản phát hành ${{ github.ref_name }}
           generate_release_notes: true
           draft: false
